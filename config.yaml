@@ -1,0 +1,25 @@
+# Cluster configuration. The code never hard-codes node addresses:
+# change only this file to move from the mock cluster to Kaggle or RunPod.
+
+router:
+  host: 0.0.0.0
+  port: 8000
+  strategy: round_robin          # name of a file in strategies/ (without .py)
+  results_dir: results           # one CSV file per run is written here
+  run_id: dev                    # change for every experiment run
+
+nodes:
+  # kind: mock | llamacpp | vllm
+  # speed_tps: tokens per second, used only by the mock server
+  - name: fast
+    url: http://127.0.0.1:9001
+    kind: mock
+    speed_tps: 60
+  - name: medium
+    url: http://127.0.0.1:9002
+    kind: mock
+    speed_tps: 30
+  - name: slow
+    url: http://127.0.0.1:9003
+    kind: mock
+    speed_tps: 10
