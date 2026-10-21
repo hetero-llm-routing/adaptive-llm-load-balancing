@@ -57,8 +57,10 @@ def main():
     if not SERVER.exists():
         if not LLAMA.exists():
             sh(f"git clone --depth 1 https://github.com/ggml-org/llama.cpp {LLAMA}")
-        sh(f"cmake -S {LLAMA} -B {LLAMA}/build -DGGML_CUDA=ON -DCMAKE_CUDA_ARCHITECTURES='60;75' "
-           f"-DLLAMA_CURL=OFF -DCMAKE_BUILD_TYPE=Release > {WORK}/cmake.log 2>&1")
+        # CUDA::cuda_driver needs the libcuda stub at configure time (Kaggle images)
+        sh(f"rm -rf {LLAMA}/build && cmake -S {LLAMA} -B {LLAMA}/build -DGGML_CUDA=ON "
+           f"-DCMAKE_CUDA_ARCHITECTURES='60;75' -DLLAMA_CURL=OFF -DCMAKE_BUILD_TYPE=Release "
+           f"-DCMAKE_LIBRARY_PATH=/usr/local/cuda/lib64/stubs > {WORK}/cmake.log 2>&1")
         sh(f"cmake --build {LLAMA}/build --target llama-server -j {os.cpu_count()} > {WORK}/build.log 2>&1")
     print("llama-server ready:", SERVER)
 
