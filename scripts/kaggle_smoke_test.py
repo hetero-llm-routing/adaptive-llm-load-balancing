@@ -57,10 +57,17 @@ def main():
     if not SERVER.exists():
         if not LLAMA.exists():
             sh(f"git clone --depth 1 https://github.com/ggml-org/llama.cpp {LLAMA}")
-        # CUDA::cuda_driver needs the libcuda stub at configure time (Kaggle images)
+        # CUDA::cuda_driver needs a file named libcuda.so at configure time; Kaggle images
+        # may only have libcuda.so.1, so link one into a local folder
+        libs = sorted(glob.glob("/usr/**/libcuda.so*", recursive=True))
+        libs = [p for p in libs if "stubs" in p] or libs
+        stub = WORK / "cudalib"; stub.mkdir(exist_ok=True)
+        if libs and not (stub / "libcuda.so").exists():
+            os.symlink(libs[0], stub / "libcuda.so")
+        print("libcuda for linking:", libs[:1])
         sh(f"rm -rf {LLAMA}/build && cmake -S {LLAMA} -B {LLAMA}/build -DGGML_CUDA=ON "
            f"-DCMAKE_CUDA_ARCHITECTURES='60;75' -DLLAMA_CURL=OFF -DCMAKE_BUILD_TYPE=Release "
-           f"-DCMAKE_LIBRARY_PATH=/usr/local/cuda/lib64/stubs > {WORK}/cmake.log 2>&1")
+           f"-DCMAKE_LIBRARY_PATH={stub} > {WORK}/cmake.log 2>&1")
         sh(f"cmake --build {LLAMA}/build --target llama-server -j {os.cpu_count()} > {WORK}/build.log 2>&1")
     print("llama-server ready:", SERVER)
 
