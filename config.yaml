@@ -8,6 +8,14 @@ router:
   results_dir: results           # one CSV file per run is written here
   run_id: dev                    # change for every experiment run
 
+model:
+  # The same model file is served on every node, so only the GPU changes between runs.
+  name: Qwen3-8B
+  hf_repo: Qwen/Qwen3-8B             # original weights (for vLLM)
+  gguf_quant: Q4_K_M                 # 4-bit GGUF for llama.cpp, about 5 GB
+  max_context: 8192                  # enough for the workloads; keeps KV cache small on 16 GB cards
+  thinking: false                    # Qwen3 thinking mode off, so output lengths stay comparable
+
 nodes:
   # kind: mock | llamacpp | vllm
   # speed_tps: tokens per second, used only by the mock server
