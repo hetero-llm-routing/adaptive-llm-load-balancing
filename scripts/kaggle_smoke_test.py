@@ -155,7 +155,9 @@ def main():
             await asyncio.gather(*[one(c, i) for i in range(N_REQUESTS)])
 
     t0 = time.time()
-    asyncio.run(run())
+    # Jupyter already runs an event loop, so run ours in a separate thread
+    import threading
+    th = threading.Thread(target=lambda: asyncio.run(run())); th.start(); th.join()
     print(f"done in {time.time() - t0:.1f} s")
     time.sleep(2)
 
