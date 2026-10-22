@@ -4,7 +4,10 @@ Builds llama.cpp with CUDA, downloads Qwen3-8B (GGUF Q4_K_M), starts one
 llama.cpp server per GPU, starts our router with round-robin, sends test
 requests and prints the CSV summary.
 
-Kaggle settings: Accelerator = GPU T4 x2 (or GPU P100), Internet = On.
+Kaggle settings: Accelerator = GPU T4 x2, Internet = On. Run it with Save Version >
+Save & Run All, so it keeps running when the browser closes. The folder
+/kaggle/working/runtime (llama-server + model) can then be saved as a dataset and
+added as Input, so later runs skip the build and the download.
 Run from the repository root:  python scripts/kaggle_smoke_test.py
 """
 import glob, os, subprocess, sys, time, json, urllib.request
@@ -13,7 +16,8 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 WORK = Path(os.environ.get("LB_WORK", "/kaggle/working"))
 LLAMA = WORK / "llama.cpp"
-SERVER = LLAMA / "build" / "bin" / "llama-server"
+RUNTIME = WORK / "runtime"            # kept in the notebook output; save it as a Kaggle dataset
+SERVER = RUNTIME / "llama-server"
 N_REQUESTS = int(os.environ.get("LB_REQUESTS", "24"))
 
 
@@ -53,8 +57,14 @@ def main():
     for i, g in enumerate(found):
         print(f"GPU {i}: {g}")
 
-    step("2/6 Build llama.cpp with CUDA (about 10 minutes, only the first time)")
+    step("2/6 llama.cpp server (built once, then reused from a Kaggle dataset)")
+    pre = sorted(glob.glob("/kaggle/input/**/llama-server", recursive=True))
+    if pre and not SERVER.exists():
+        RUNTIME.mkdir(exist_ok=True)
+        sh(f"cp {pre[0]} {SERVER} && chmod +x {SERVER}")
+        print("reused from dataset:", pre[0])
     if not SERVER.exists():
+        print("building with CUDA for the T4 (15 to 25 minutes, only the first time)")
         if not LLAMA.exists():
             sh(f"git clone --depth 1 https://github.com/ggml-org/llama.cpp {LLAMA}")
         # CUDA::cuda_driver needs a file named libcuda.so at configure time; Kaggle images
@@ -66,17 +76,25 @@ def main():
             os.symlink(libs[0], stub / "libcuda.so")
         print("libcuda for linking:", libs[:1])
         sh(f"rm -rf {LLAMA}/build && cmake -S {LLAMA} -B {LLAMA}/build -DGGML_CUDA=ON "
-           f"-DCMAKE_CUDA_ARCHITECTURES='60;75' -DLLAMA_CURL=OFF -DCMAKE_BUILD_TYPE=Release "
+           f"-DCMAKE_CUDA_ARCHITECTURES=75 -DLLAMA_CURL=OFF -DCMAKE_BUILD_TYPE=Release "
+           f"-DBUILD_SHARED_LIBS=OFF "
            f"-DCMAKE_LIBRARY_PATH={stub} > {WORK}/cmake.log 2>&1")
         sh(f"cmake --build {LLAMA}/build --target llama-server -j {os.cpu_count()} > {WORK}/build.log 2>&1")
+        RUNTIME.mkdir(exist_ok=True)
+        sh(f"cp {LLAMA}/build/bin/llama-server {SERVER} && rm -rf {LLAMA}")
     print("llama-server ready:", SERVER)
 
     step("3/6 Download Qwen3-8B Q4_K_M (about 5 GB)")
-    sh(f"{sys.executable} -m pip install -q huggingface_hub")
-    from huggingface_hub import snapshot_download
-    d = snapshot_download("Qwen/Qwen3-8B-GGUF", allow_patterns=["*Q4_K_M*.gguf"],
-                          local_dir=str(WORK / "models"))
-    model = sorted(glob.glob(f"{d}/**/*Q4_K_M*.gguf", recursive=True))[0]
+    found_models = sorted(glob.glob("/kaggle/input/**/*Q4_K_M*.gguf", recursive=True))
+    if found_models:
+        model = found_models[0]
+        print("reused from dataset")
+    else:
+        sh(f"{sys.executable} -m pip install -q huggingface_hub")
+        from huggingface_hub import snapshot_download
+        d = snapshot_download("Qwen/Qwen3-8B-GGUF", allow_patterns=["*Q4_K_M*.gguf"],
+                              local_dir=str(RUNTIME))
+        model = sorted(glob.glob(f"{d}/**/*Q4_K_M*.gguf", recursive=True))[0]
     print("model:", model, f"({os.path.getsize(model) / 1e9:.2f} GB)")
 
     step("4/6 Start one llama.cpp server per GPU")
@@ -151,4 +169,11 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    try:
+        main()
+    except BaseException:
+        for f in ["cmake.log", "build.log", "server_0.log", "router.log"]:
+            if (WORK / f).exists():
+                print(f"\n----- last lines of {f} -----")
+                print("\n".join((WORK / f).read_text(errors="replace").splitlines()[-30:]))
+        raise
