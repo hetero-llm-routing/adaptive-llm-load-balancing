@@ -8,6 +8,11 @@ router:
   results_dir: results           # one CSV file per run is written here
   run_id: dev                    # change for every experiment run
 
+energy:
+  # How a node's measured energy is shared among requests served at the same time
+  # (infra/attribute_energy.py): tokens | equal. Final choice: task #26.
+  method: tokens
+
 model:
   # The same model file is served on every node, so only the GPU changes between runs.
   name: Qwen3-8B
@@ -18,7 +23,9 @@ model:
 
 nodes:
   # kind: mock | llamacpp | vllm
-  # speed_tps: tokens per second, used only by the mock server
+  # speed_tps / prefill_tps: decode / prompt tokens per second of the node, measured once per GPU type;
+  #   passed to the strategies (and used by the mock server)
+  # gpu_index (and host, if nodes are on several machines): which GPU's power log belongs to the node
   - name: fast
     url: http://127.0.0.1:9001
     kind: mock

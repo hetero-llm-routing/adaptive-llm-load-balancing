@@ -15,4 +15,4 @@ The router writes one row per request.
 | ttft_ms | Time to first token, in milliseconds |
 | tpot_ms | Time per output token after the first, in milliseconds |
 | e2e_ms | Total time of the request, in milliseconds |
-| energy_j | Energy of the request in joules (empty until the energy logger is added) |
+| energy_j | Energy of the request in joules, filled after the run by `infra/attribute_energy.py` from the power log of `infra/energy_logger.py` (rule set by `energy.method` in config.yaml) |

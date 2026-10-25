@@ -31,21 +31,64 @@ def prompt_tokens(body):
 SPEED_KEYS = ("speed_tps", "prefill_tps")   # measured once per GPU type, set per node in config.yaml
 
 
+UNREACHABLE = 10**6                         # queue_len given to a node that does not answer
+INFLIGHT = {}                               # node -> requests sent by this router and not finished
+SLOTS = {}                                  # node -> number of llama.cpp slots (read once)
+
+
+def parse_metrics(text):
+    """Prometheus text from llama-server /metrics -> {name: value}."""
+    out = {}
+    for line in text.splitlines():
+        if line and not line.startswith("#"):
+            parts = line.split()
+            try:
+                out[parts[0].split("{")[0]] = float(parts[-1])
+            except (ValueError, IndexError):
+                pass
+    return out
+
+
+async def llamacpp_state(name, node, extra):
+    """State of a llama.cpp server (needs --metrics). Running and waiting requests come from
+    /metrics; KV-cache use from kv_cache_usage_ratio when the build reports it, otherwise
+    the share of busy slots."""
+    m = parse_metrics((await client.get(node["url"] + "/metrics", timeout=1.0)).text)
+    running = int(m.get("llamacpp:requests_processing", 0))
+    waiting = int(m.get("llamacpp:requests_deferred", 0))
+    kv = m.get("llamacpp:kv_cache_usage_ratio")
+    if kv is None:
+        if name not in SLOTS:
+            try:
+                SLOTS[name] = max(1, len((await client.get(node["url"] + "/slots", timeout=1.0)).json()))
+            except Exception:
+                SLOTS[name] = 1
+        kv = min(1.0, running / SLOTS[name])
+    extra["inflight"] = INFLIGHT.get(name, 0)
+    return GpuState(queue_len=waiting, running=running, kv_usage=float(kv), extra=extra)
+
+
 async def read_states():
     async def one(name, node):
         # Fixed node speeds from config.yaml, so strategies need not read the file themselves
         extra = {k: float(node[k]) for k in SPEED_KEYS if node.get(k) is not None}
+        if node["kind"] == "llamacpp":
+            try:
+                return name, await llamacpp_state(name, node, extra)
+            except Exception:
+                return name, GpuState(queue_len=UNREACHABLE, extra=extra)
         if node["kind"] != "mock":
-            return name, GpuState(extra=extra)      # Eyad: read real llama.cpp / vLLM metrics here
+            return name, GpuState(extra=extra)      # vLLM state: added when vLLM runs are prepared
         try:
             s = (await client.get(node["url"] + "/state", timeout=1.0)).json()
             for k in SPEED_KEYS:                    # a value reported by the node wins over config.yaml
                 if s.get(k) is not None:
                     extra[k] = float(s[k])
+            extra["inflight"] = INFLIGHT.get(name, 0)
             return name, GpuState(queue_len=s["queue_len"], running=s["running"], kv_usage=s["kv_usage"],
                                   extra=extra)
         except Exception:
-            return name, GpuState(queue_len=10**6, extra=extra)
+            return name, GpuState(queue_len=UNREACHABLE, extra=extra)
     return dict(await asyncio.gather(*[one(n, v) for n, v in NODES.items()]))
 
 
@@ -73,8 +116,12 @@ async def chat(req: Request):
                 "output_len": n_out, "arrival_ts": f"{arrival:.6f}", "ttft_ms": f"{ttft:.2f}",
                 "tpot_ms": f"{tpot:.2f}", "e2e_ms": f"{e2e:.2f}", "energy_j": ""}
 
+    INFLIGHT[gpu] = INFLIGHT.get(gpu, 0) + 1
     if not body.get("stream", False):
-        r = await client.post(url, json=body)
+        try:
+            r = await client.post(url, json=body)
+        finally:
+            INFLIGHT[gpu] -= 1
         end = time.time()
         data = r.json()
         n_out = data.get("usage", {}).get("completion_tokens", 0)
@@ -82,17 +129,30 @@ async def chat(req: Request):
         return JSONResponse(data, status_code=r.status_code)
 
     async def relay():
-        ttft, n_out = None, 0
-        async with client.stream("POST", url, json=body) as r:
-            async for line in r.aiter_lines():
-                if not line:
-                    continue
-                if line.startswith("data: ") and line != "data: [DONE]":
-                    if ttft is None:
-                        ttft = (time.time() - arrival) * 1000
-                    n_out += 1
-                yield line + "\n\n"
-        log_row(row(ttft or 0.0, n_out, time.time()))
+        # TTFT is taken at the first chunk that carries generated text; the token count comes
+        # from the server's usage report when it sends one, otherwise from the text chunks.
+        ttft, chunks, usage_tokens = None, 0, None
+        try:
+            async with client.stream("POST", url, json=body) as r:
+                async for line in r.aiter_lines():
+                    if not line:
+                        continue
+                    if line.startswith("data: ") and line != "data: [DONE]":
+                        try:
+                            msg = json.loads(line[6:])
+                        except ValueError:
+                            msg = {}
+                        delta = (msg.get("choices") or [{}])[0].get("delta") or {}
+                        if delta.get("content") or delta.get("reasoning_content"):
+                            if ttft is None:
+                                ttft = (time.time() - arrival) * 1000
+                            chunks += 1
+                        if (msg.get("usage") or {}).get("completion_tokens") is not None:
+                            usage_tokens = msg["usage"]["completion_tokens"]
+                    yield line + "\n\n"
+        finally:
+            INFLIGHT[gpu] -= 1
+        log_row(row(ttft or 0.0, usage_tokens if usage_tokens is not None else chunks, time.time()))
     return StreamingResponse(relay(), media_type="text/event-stream")
 
 
