@@ -6,8 +6,13 @@ for the paper**: two T4 GPUs, 60 requests per run, one repetition, and the "mixe
 imitates a slower GPU.
 
 - Notebook: `deveks2025/llm-lb-smoke-test`, version 5 "Phase 3 prototype" (private), GPU T4 x2,
-  ran successfully in 1547.7 s. The full output (`prototype_results.zip`: request CSVs, power log,
-  per-run energy summaries, configs, server logs, `/metrics` samples) is in that version's output.
+  ran successfully in 1547.7 s. The files of that run are in this folder: one request CSV per
+  strategy and scenario (`same/`, `mixed/`, with `energy_j` filled by the `tokens` rule), the
+  energy summaries for both rules (`*_energy_tokens.json`, `*_energy_equal.json`), the run configs,
+  the power log (`power.csv`), the request list (`workload.json`), one sample of each server's
+  `/metrics` and `/slots`, and `summary.json`. The llama.cpp server logs are left in the notebook output.
+- This llama.cpp build does not report `kv_cache_usage_ratio`, so `kv_usage` came from the share of
+  busy slots (see `*_metrics.txt`).
 - Script: `scripts/kaggle_prototype.py` at commit 3aeb382.
 - Workload: 60 requests, Poisson arrivals at 0.6 requests/s, seed 1; about 1 in 3 is a long-document
   request (`max_tokens` 128), the rest are short questions (`max_tokens` 64, 128 or 256). The same
