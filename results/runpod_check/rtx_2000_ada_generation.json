@@ -1,0 +1,76 @@
+{
+  "gpu": {
+    "name": "NVIDIA RTX 2000 Ada Generation",
+    "memory.total": "16380 MiB",
+    "power.limit": "70.00 W",
+    "driver_version": "595.91.07"
+  },
+  "llama_server": "http://127.0.0.1:8080",
+  "speeds": {
+    "speed_tps": 40.37,
+    "prefill_tps": 2016.4,
+    "decode_runs": [
+      40.37,
+      40.33,
+      40.49
+    ],
+    "prefill_runs": [
+      2010.6,
+      2016.4,
+      2019.4
+    ]
+  },
+  "batching": [
+    {
+      "concurrent": 1,
+      "total_tokens": 256,
+      "wall_s": 6.23,
+      "total_tps": 41.09,
+      "per_request_tps": 41.93,
+      "speedup_vs_1": 1.0
+    },
+    {
+      "concurrent": 2,
+      "total_tokens": 512,
+      "wall_s": 6.37,
+      "total_tps": 80.37,
+      "per_request_tps": 40.47,
+      "speedup_vs_1": 1.96
+    },
+    {
+      "concurrent": 4,
+      "total_tokens": 1024,
+      "wall_s": 7.7,
+      "total_tps": 132.97,
+      "per_request_tps": 34.53,
+      "speedup_vs_1": 3.24
+    }
+  ],
+  "power": {
+    "samples": 46,
+    "median_interval_s": 1.0,
+    "idle_w": [
+      7.5,
+      15
+    ],
+    "single_request_w": [
+      56.1,
+      9
+    ],
+    "batch_w": {
+      "1": [
+        68.5,
+        6
+      ],
+      "2": [
+        69.3,
+        6
+      ],
+      "4": [
+        67.6,
+        8
+      ]
+    }
+  },
+  "time": "2026-10-27 07:52:19"
+}
