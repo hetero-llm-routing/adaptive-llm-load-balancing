@@ -16,7 +16,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from strategies.base import Request as LbRequest, GpuState
 
 CSV_COLUMNS = ["run_id", "strategy", "seed", "request_id", "gpu", "prompt_len", "output_len",
-               "arrival_ts", "ttft_ms", "tpot_ms", "e2e_ms", "energy_j"]
+               "arrival_ts", "ttft_ms", "tpot_ms", "e2e_ms", "energy_j", "req_type"]
 
 app = FastAPI()
 CFG, NODES, STRATEGY, WRITER, CSV_FILE = {}, {}, None, None, None
@@ -114,7 +114,8 @@ async def chat(req: Request):
         return {"run_id": CFG["router"]["run_id"], "strategy": CFG["router"]["strategy"], "seed": seed,
                 "request_id": lb_req.request_id, "gpu": gpu, "prompt_len": lb_req.prompt_len,
                 "output_len": n_out, "arrival_ts": f"{arrival:.6f}", "ttft_ms": f"{ttft:.2f}",
-                "tpot_ms": f"{tpot:.2f}", "e2e_ms": f"{e2e:.2f}", "energy_j": ""}
+                "tpot_ms": f"{tpot:.2f}", "e2e_ms": f"{e2e:.2f}", "energy_j": "",
+                "req_type": lb_req.req_type}
 
     INFLIGHT[gpu] = INFLIGHT.get(gpu, 0) + 1
     if not body.get("stream", False):
