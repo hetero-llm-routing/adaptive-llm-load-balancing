@@ -7,6 +7,8 @@ router:
   strategy: round_robin          # name of a file in strategies/ (without .py)
   results_dir: results           # one CSV file per run is written here
   run_id: dev                    # change for every experiment run
+  state_interval_s: 0            # 0 = read node state before every request; e.g. 0.25 = read it in the
+                                 #   background (use this when nodes are on other machines)
 
 energy:
   # How a node's measured energy is shared among requests served at the same time

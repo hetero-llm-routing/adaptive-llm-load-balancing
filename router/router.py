@@ -92,6 +92,37 @@ async def read_states():
     return dict(await asyncio.gather(*[one(n, v) for n, v in NODES.items()]))
 
 
+# Node state is read in the background every router.state_interval_s seconds (0 = read before
+# every request, as before). Across machines one read can take most of a second (0.3 to 0.9 s
+# through the RunPod proxy), which must not be added to every request's latency.
+STATES = {}
+
+
+async def poll_states(interval):
+    global STATES
+    while True:
+        STATES = await read_states()
+        await asyncio.sleep(interval)
+
+
+async def current_states():
+    interval = float(CFG["router"].get("state_interval_s", 0) or 0)
+    if interval <= 0 or not STATES:
+        return await read_states()
+    # the router's own in-flight counts are always current, even between two reads
+    for name, s in STATES.items():
+        if s.extra is not None and "inflight" in s.extra:
+            s.extra["inflight"] = INFLIGHT.get(name, 0)
+    return STATES
+
+
+@app.on_event("startup")
+async def start_polling():
+    interval = float(CFG.get("router", {}).get("state_interval_s", 0) or 0)
+    if interval > 0:
+        asyncio.create_task(poll_states(interval))
+
+
 def log_row(row):
     WRITER.writerow(row)
     CSV_FILE.flush()
@@ -103,7 +134,7 @@ async def chat(req: Request):
     arrival = time.time()
     lb_req = LbRequest(request_id=uuid.uuid4().hex[:12], prompt_len=prompt_tokens(body),
                        req_type=req.headers.get("x-request-type", "chat"), arrival_ts=arrival)
-    states = await read_states()
+    states = await current_states()
     gpu = STRATEGY.choose_gpu(lb_req, states)
     url = NODES[gpu]["url"] + "/v1/chat/completions"
     seed = req.headers.get("x-seed", "")
