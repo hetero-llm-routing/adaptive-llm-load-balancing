@@ -1,0 +1,28 @@
+router:
+  host: 127.0.0.1
+  port: 8000
+  strategy: predictive
+  results_dir: /kaggle/working/prototype/mixed
+  run_id: proto_mixed
+model:
+  name: Qwen3-8B
+  gguf_quant: Q4_K_M
+  max_context: 8192
+  thinking: false
+energy:
+  method: tokens
+nodes:
+- name: t4_0
+  url: http://127.0.0.1:8081
+  kind: llamacpp
+  gpu_index: 0
+  ngl: '99'
+  speed_tps: 21.07
+  prefill_tps: 907.2
+- name: t4_1
+  url: http://127.0.0.1:8082
+  kind: llamacpp
+  gpu_index: 1
+  ngl: '28'
+  speed_tps: 7.81
+  prefill_tps: 647.3

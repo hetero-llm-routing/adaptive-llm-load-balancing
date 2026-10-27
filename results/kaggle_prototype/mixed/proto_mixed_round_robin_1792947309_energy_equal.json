@@ -1,0 +1,23 @@
+{
+  "method": "equal",
+  "nodes": {
+    "t4_0": {
+      "requests": 30,
+      "power_samples": 929,
+      "energy_j": 6531.3,
+      "idle_energy_j": 35.6,
+      "attributed_j": 6495.7,
+      "output_tokens": 3231,
+      "j_per_token": 2.0215
+    },
+    "t4_1": {
+      "requests": 30,
+      "power_samples": 929,
+      "energy_j": 12479.6,
+      "idle_energy_j": 0.0,
+      "attributed_j": 12479.6,
+      "output_tokens": 3338,
+      "j_per_token": 3.7387
+    }
+  }
+}
