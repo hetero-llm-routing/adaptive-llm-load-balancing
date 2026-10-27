@@ -34,7 +34,7 @@ workload, so this is not a calibration.
 1. **Profiling on each GPU type.** Vidur ships profiles only for A100, H100 and A40. A new GPU needs MLP and
    attention profiling on the real GPU, using `sarathi-serve` (branch `vidur`) and the scripts in
    `vidur/profiling/` (see `docs/profiling.md`). One GPU of each type is enough. Sarathi-serve uses kernels for
-   Ampere and newer GPUs, so the RTX 2000 Ada, RTX A4500 and RTX 4090 should work; the T4 (Turing) is unlikely
+   Ampere and newer GPUs, so the RTX 2000 Ada, RTX A6000 and RTX 4090 should work; the T4 (Turing) is unlikely
    and the P100 (Pascal) is not supported. To be confirmed on RunPod in Phase 4.
 2. **A model config for Qwen3-8B.** A YAML file with the Hugging Face config values (36 layers, 32 query and 8
    KV heads, hidden size 4096, MLP size 12288). Qwen3 has a few layers that Vidur's reference model does not
@@ -45,7 +45,7 @@ workload, so this is not a calibration.
 - **Engine and precision.** Vidur models a PyTorch/vLLM-style engine in fp16. Our main engine is llama.cpp with
   4-bit GGUF, which Vidur does not model. Vidur results would describe the vLLM setting, not our main runs.
 - **One GPU type per cluster.** Vidur's cluster config has a single replica type, so a mixed cluster
-  (for example 4090 + A4500 + RTX 2000 Ada) needs changes to Vidur's code.
+  (for example 4090 + A6000 + RTX 2000 Ada) needs changes to Vidur's code.
 - **Routing strategies.** Vidur's global schedulers are round-robin, random and least-outstanding-requests.
   Our static weighted, predictive and RL strategies would have to be ported as new global schedulers.
 

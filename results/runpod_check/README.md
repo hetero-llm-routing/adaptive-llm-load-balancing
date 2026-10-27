@@ -13,10 +13,13 @@ template `runpod/pytorch:1.4.1-cu1281-torch280-ubuntu2404`.
 | RTX A6000 | 48 GB | 300 W | 98.1 | 4,679 |
 | RTX 2000 Ada | 16 GB | 70 W | 40.4 | 2,016 |
 
-The RTX A6000 (Ampere workstation card) stood in for the RTX A4500, which was not available.
+The RTX A6000 (Ampere workstation card) replaces the RTX A4500 in the testbed: the A4500 was
+"out of capacity" for the whole session, and the experiments need the same card in every session.
+Decision by Eyad on Oct 27; Sections 1 and 2 of the draft are updated (48 GB, 768 GB/s [24],
+decode bound about 154 steps per second).
 The 4090 decodes 3.7 times faster than the RTX 2000 Ada (prompt processing: 5.7 times), and the
-A6000 sits in between. Section 2.2 gives bandwidth upper bounds of 200 (4090) and 45 (2000 Ada)
-steps per second; the measured 149 and 40 are below them, as expected.
+A6000 sits in between. Section 2.2 gives bandwidth upper bounds of 200 (4090), 154 (A6000) and 45
+(2000 Ada) steps per second; the measured 149, 98 and 40 are below them, as expected.
 
 ## Batching (assumption A5)
 
