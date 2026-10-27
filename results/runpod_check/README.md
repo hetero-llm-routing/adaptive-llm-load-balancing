@@ -10,9 +10,13 @@ template `runpod/pytorch:1.4.1-cu1281-torch280-ubuntu2404`.
 | GPU | VRAM | Power limit | Decode `speed_tps` | Prompt `prefill_tps` |
 | --- | --- | --- | --- | --- |
 | RTX 4090 | 24 GB | 450 W | 149.3 | 11,468 |
+| RTX A6000 | 48 GB | 300 W | 98.1 | 4,679 |
 | RTX 2000 Ada | 16 GB | 70 W | 40.4 | 2,016 |
 
-The 4090 decodes 3.7 times faster than the RTX 2000 Ada (prompt processing: 5.7 times).
+The RTX A6000 (Ampere workstation card) stood in for the RTX A4500, which was not available.
+The 4090 decodes 3.7 times faster than the RTX 2000 Ada (prompt processing: 5.7 times), and the
+A6000 sits in between. Section 2.2 gives bandwidth upper bounds of 200 (4090) and 45 (2000 Ada)
+steps per second; the measured 149 and 40 are below them, as expected.
 
 ## Batching (assumption A5)
 
@@ -21,6 +25,7 @@ Total decode speed with 1, 2 and 4 requests at the same time (256 output tokens 
 | GPU | 1 | 2 | 4 | Speed-up with 4 |
 | --- | --- | --- | --- | --- |
 | RTX 4090 | 137 | 268 | 399 | 2.91 |
+| RTX A6000 | 94 | 180 | 260 | 2.76 |
 | RTX 2000 Ada | 41 | 80 | 133 | 3.24 |
 
 Running requests do not split a fixed speed: total throughput grows almost linearly up to 2 and
@@ -35,10 +40,16 @@ rather than equal sharing.
 | GPU | Idle | One request | Under load (1 to 4 requests) |
 | --- | --- | --- | --- |
 | RTX 4090 | 24 W | 156 W | 280 to 310 W |
+| RTX A6000 | 37.5 W (see below) | 214 W | 277 to 295 W |
 | RTX 2000 Ada | 7.5 W | 56 W | 68 to 69 W (at its 70 W limit) |
 
 The 4090 runs finish in about 2 s, so its load values rest on few samples; the Phase 4 runs are
 long enough for this not to matter. Timestamps in the power CSVs are rounded to the 1 s steps.
+
+On the A6000 the GPU stayed at about 110 W for the first 13 s after the server had loaded the
+model, then dropped to 37.5 W (state P8), so the `idle_w` value in its JSON (104.8 W) is not the
+idle power. The Phase 4 runs must wait about 30 s after the servers start before measuring idle
+power or starting a run.
 
 ## Findings for the Phase 4 session
 
@@ -53,5 +64,7 @@ long enough for this not to matter. Timestamps in the power CSVs are rounded to 
    took 0.28 to 0.92 s, against the router's 1 s timeout, and the router reads every node before
    each decision. For the real runs the router should poll node state in the background (or use
    direct TCP ports) so this delay is not added to every request.
-4. **Getting the code onto the pods**: the repository is private, so the pods cannot clone it
+4. **Build time depends on the pod's CPUs**: 12 vCPUs (4090 pod) built llama.cpp in about 12 min,
+   8 vCPUs (A6000 pod) in about 17 min. Pods of the same GPU generation can reuse one build.
+5. **Getting the code onto the pods**: the repository is private, so the pods cannot clone it
    without a key; today the files were copied in through Jupyter.

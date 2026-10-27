@@ -1,0 +1,76 @@
+{
+  "gpu": {
+    "name": "NVIDIA RTX A6000",
+    "memory.total": "46068 MiB",
+    "power.limit": "300.00 W",
+    "driver_version": "595.91.07"
+  },
+  "llama_server": "http://127.0.0.1:8080",
+  "speeds": {
+    "speed_tps": 98.1,
+    "prefill_tps": 4678.9,
+    "decode_runs": [
+      97.06,
+      99.23,
+      98.1
+    ],
+    "prefill_runs": [
+      4678.9,
+      4653.3,
+      4694.5
+    ]
+  },
+  "batching": [
+    {
+      "concurrent": 1,
+      "total_tokens": 256,
+      "wall_s": 2.72,
+      "total_tps": 94.25,
+      "per_request_tps": 101.53,
+      "speedup_vs_1": 1.0
+    },
+    {
+      "concurrent": 2,
+      "total_tokens": 512,
+      "wall_s": 2.85,
+      "total_tps": 179.89,
+      "per_request_tps": 91.9,
+      "speedup_vs_1": 1.91
+    },
+    {
+      "concurrent": 4,
+      "total_tokens": 1024,
+      "wall_s": 3.93,
+      "total_tps": 260.47,
+      "per_request_tps": 74.55,
+      "speedup_vs_1": 2.76
+    }
+  ],
+  "power": {
+    "samples": 31,
+    "median_interval_s": 1.0,
+    "idle_w": [
+      104.8,
+      15
+    ],
+    "single_request_w": [
+      214.2,
+      5
+    ],
+    "batch_w": {
+      "1": [
+        288.0,
+        2
+      ],
+      "2": [
+        294.9,
+        3
+      ],
+      "4": [
+        276.9,
+        4
+      ]
+    }
+  },
+  "time": "2026-10-27 08:16:08"
+}
