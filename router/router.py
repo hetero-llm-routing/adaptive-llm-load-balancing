@@ -28,15 +28,24 @@ def prompt_tokens(body):
     return max(1, int(len(text.split()) * 1.3))
 
 
+SPEED_KEYS = ("speed_tps", "prefill_tps")   # measured once per GPU type, set per node in config.yaml
+
+
 async def read_states():
     async def one(name, node):
+        # Fixed node speeds from config.yaml, so strategies need not read the file themselves
+        extra = {k: float(node[k]) for k in SPEED_KEYS if node.get(k) is not None}
         if node["kind"] != "mock":
-            return name, GpuState()      # Eyad: read real llama.cpp / vLLM metrics here
+            return name, GpuState(extra=extra)      # Eyad: read real llama.cpp / vLLM metrics here
         try:
             s = (await client.get(node["url"] + "/state", timeout=1.0)).json()
-            return name, GpuState(queue_len=s["queue_len"], running=s["running"], kv_usage=s["kv_usage"])
+            for k in SPEED_KEYS:                    # a value reported by the node wins over config.yaml
+                if s.get(k) is not None:
+                    extra[k] = float(s[k])
+            return name, GpuState(queue_len=s["queue_len"], running=s["running"], kv_usage=s["kv_usage"],
+                                  extra=extra)
         except Exception:
-            return name, GpuState(queue_len=10**6)
+            return name, GpuState(queue_len=10**6, extra=extra)
     return dict(await asyncio.gather(*[one(n, v) for n, v in NODES.items()]))
 
 
