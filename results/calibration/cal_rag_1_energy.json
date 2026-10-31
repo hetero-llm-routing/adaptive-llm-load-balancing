@@ -1,0 +1,38 @@
+{
+  "method": "tokens",
+  "run_s": 237.0,
+  "nodes": {
+    "rtx2000ada": {
+      "requests": 120,
+      "power_samples": 246,
+      "energy_j": 15786.9,
+      "idle_energy_j": 0.0,
+      "attributed_j": 15786.9,
+      "output_tokens": 22267,
+      "j_per_token": 0.709
+    },
+    "rtx4090": {
+      "requests": 128,
+      "power_samples": 246,
+      "energy_j": 55637.4,
+      "idle_energy_j": 2690.0,
+      "attributed_j": 52947.4,
+      "output_tokens": 28004,
+      "j_per_token": 1.9868
+    },
+    "rtxa6000": {
+      "requests": 128,
+      "power_samples": 246,
+      "energy_j": 54366.1,
+      "idle_energy_j": 4718.5,
+      "attributed_j": 49647.6,
+      "output_tokens": 26336,
+      "j_per_token": 2.0643
+    }
+  },
+  "cluster": {
+    "energy_j": 125790.4,
+    "output_tokens": 76607,
+    "j_per_token": 1.642
+  }
+}

@@ -1,0 +1,21 @@
+{
+  "experiment": "pilot",
+  "workload": "mixed",
+  "rho": 0.6,
+  "rate": 0.7524630352881598,
+  "sat_rate": 1.2541050588135998,
+  "arrival": "poisson",
+  "duration_s": 240,
+  "warmup_s": 30,
+  "config": "config_run.yaml",
+  "run_id": "pilot_mixed_r60_s1_least_load",
+  "strategy": "least_load",
+  "seed": 1,
+  "start_ts": 1793459846.6406958,
+  "end_ts": 1793460093.0291235,
+  "n_sent": 189,
+  "n_failed": 0,
+  "power_rows": 755,
+  "requests_csv": "pilot_mixed_r60_s1_least_load_least_load_1793459846.csv",
+  "max_lag_ms": 4.45
+}

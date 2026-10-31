@@ -1,0 +1,14 @@
+{
+  "family": "mixed",
+  "rate": 1.0905261380987823,
+  "run_id": "cal_mixed_4",
+  "strategy": "round_robin",
+  "seed": 104,
+  "start_ts": 1793458928.8696349,
+  "end_ts": 1793459112.523975,
+  "n_sent": 207,
+  "n_failed": 0,
+  "power_rows": 567,
+  "requests_csv": "cal_mixed_4_round_robin_1793458928.csv",
+  "max_lag_ms": 3.13
+}

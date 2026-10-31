@@ -1,0 +1,14 @@
+{
+  "family": "chat",
+  "rate": 1.7870822922900316,
+  "run_id": "cal_chat_4",
+  "strategy": "round_robin",
+  "seed": 104,
+  "start_ts": 1793453415.5254292,
+  "end_ts": 1793453656.5524104,
+  "n_sent": 342,
+  "n_failed": 13,
+  "power_rows": 739,
+  "requests_csv": "cal_chat_4_round_robin_1793453415.csv",
+  "max_lag_ms": 2.32
+}
