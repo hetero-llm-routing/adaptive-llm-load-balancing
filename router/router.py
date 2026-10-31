@@ -72,8 +72,11 @@ async def read_states():
     async def one(name, node):
         # Fixed node speeds from config.yaml, so strategies need not read the file themselves
         extra = {k: float(node[k]) for k in SPEED_KEYS if node.get(k) is not None}
-        if node.get("speed_by_n"):                  # total decode speed with 1..4 running requests (A5)
-            extra["speed_by_n"] = [float(x) for x in node["speed_by_n"]]
+        for k in ("speed_by_n", "power_by_n"):      # decode speed / power with 1..4 running requests (A5)
+            if node.get(k):
+                extra[k] = [float(x) for x in node[k]]
+        if node.get("idle_w") is not None:
+            extra["idle_w"] = float(node["idle_w"])
         if node["kind"] == "llamacpp":
             try:
                 return name, await llamacpp_state(name, node, extra)

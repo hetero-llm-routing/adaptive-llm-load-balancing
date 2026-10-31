@@ -72,6 +72,8 @@ def main():
             n["speed_tps"] = p["speed_tps"]
             n["prefill_tps"] = p["prefill_tps"]
             n["speed_by_n"] = [p["decode_by_concurrency"][str(k)]["total_tps"] for k in (1, 2, 3, 4)]
+            n["power_by_n"] = [p["power"][f"decode_{k}"]["mean_w"] for k in (1, 2, 3, 4)]
+            n["idle_w"] = p["power"]["idle"]["mean_w"]
         else:
             print(f"{name}: no profile at {prof}; speeds not set"); ok = False
         if n.get("slots") not in (None, 4):
