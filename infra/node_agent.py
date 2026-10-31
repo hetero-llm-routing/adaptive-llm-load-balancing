@@ -1,6 +1,6 @@
 """Small HTTP agent next to each inference server (standard library only).
 
-    python infra/node_agent.py --power /workspace/lb/power.csv --port 8081
+    python infra/node_agent.py --power /workspace/lb/power.csv --port 8082
 
 The energy logger runs for the whole session on every node and writes one power CSV.
 The experiment runner (on the router machine) fetches the samples of each run from here,
@@ -61,7 +61,7 @@ def main():
     global POWER
     ap = argparse.ArgumentParser()
     ap.add_argument("--power", required=True)
-    ap.add_argument("--port", type=int, default=8081)
+    ap.add_argument("--port", type=int, default=8082)
     a = ap.parse_args()
     POWER = a.power
     ThreadingHTTPServer(("0.0.0.0", a.port), Handler).serve_forever()

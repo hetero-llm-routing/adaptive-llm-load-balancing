@@ -1,6 +1,8 @@
 # Testbed configuration (RunPod). Same format as config.yaml; copy it and set the node URLs
-# of the pods of the session. Speeds measured on Oct 27 with scripts/runpod_check.py
-# (results/runpod_check/); measure again at the start of each session and update them.
+# of the pods of the session. Speeds measured on Oct 31 with scripts/profile_gpu.py (results/profiles/):
+# speed_tps = decode speed with one request, speed_by_n = total decode speed with 1, 2, 3, 4
+# running requests (assumption A5), prefill_tps = prompt speed for a ~1,800-token prompt.
+# Measure again at the start of each session and update them.
 #
 # Node URL on RunPod: https://<pod-id>-8080.proxy.runpod.net (expose HTTP port 8080).
 # Wait about 30 s after the servers start before a run (the GPUs stay in a high-power
@@ -25,21 +27,24 @@ model:
   thinking: false
 
 nodes:
-  - name: rtx4090
-    url: https://POD-ID-8080.proxy.runpod.net
-    kind: llamacpp
-    speed_tps: 149.3
-    prefill_tps: 11468
-    gpu_index: 0
-  - name: rtxa6000
-    url: https://POD-ID-8080.proxy.runpod.net
-    kind: llamacpp
-    speed_tps: 98.1
-    prefill_tps: 4679
-    gpu_index: 0
-  - name: rtx2000ada
-    url: https://POD-ID-8080.proxy.runpod.net
-    kind: llamacpp
-    speed_tps: 40.4
-    prefill_tps: 2016
-    gpu_index: 0
+- name: rtx4090
+  url: https://POD-ID-8080.proxy.runpod.net
+  kind: llamacpp
+  speed_tps: 150.61
+  prefill_tps: 11836.4
+  gpu_index: 0
+  speed_by_n: [150.61, 269.82, 358.99, 450.43]
+- name: rtxa6000
+  url: https://POD-ID-8080.proxy.runpod.net
+  kind: llamacpp
+  speed_tps: 114.79
+  prefill_tps: 4801.9
+  gpu_index: 0
+  speed_by_n: [114.79, 208.74, 273.51, 325.77]
+- name: rtx2000ada
+  url: https://POD-ID-8080.proxy.runpod.net
+  kind: llamacpp
+  speed_tps: 41.66
+  prefill_tps: 1999.9
+  gpu_index: 0
+  speed_by_n: [41.66, 79.72, 112.87, 133.4]

@@ -16,6 +16,7 @@ import argparse, json, statistics, subprocess, sys, threading, time, urllib.requ
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
+GPU_INDEX = 0
 SENT = "Distributed systems share work among many machines to finish jobs faster. "   # ~13 tokens
 PROMPTS = {"short": SENT * 23, "medium": SENT * 150, "long": SENT * 460}
 OUT_TOKENS = 256
@@ -37,7 +38,7 @@ def ask(url, text, max_tokens):
 def gpu_info():
     q = "name,memory.total,power.limit,driver_version,clocks.max.sm"
     line = subprocess.run(["nvidia-smi", f"--query-gpu={q}", "--format=csv,noheader"],
-                          capture_output=True, text=True).stdout.strip().splitlines()[0]
+                          capture_output=True, text=True).stdout.strip().splitlines()[GPU_INDEX]
     return dict(zip(q.split(","), [p.strip() for p in line.split(",")]))
 
 
@@ -75,7 +76,10 @@ def main():
     ap.add_argument("--out", default=str(ROOT / "results" / "profiles"))
     ap.add_argument("--repeats", type=int, default=3)
     ap.add_argument("--idle-wait", type=float, default=30.0)
+    ap.add_argument("--gpu-index", type=int, default=0, help="GPU whose power is reported (the one the server uses)")
     a = ap.parse_args()
+    global GPU_INDEX
+    GPU_INDEX = a.gpu_index
     out = Path(a.out); out.mkdir(parents=True, exist_ok=True)
     info = gpu_info()
     tag = info["name"].replace("NVIDIA ", "").replace("Tesla ", "").replace(" ", "_").lower()
@@ -112,7 +116,7 @@ def main():
     time.sleep(2)
     logger.terminate(); logger.wait()
     rows = [l.split(",") for l in power_csv.read_text().splitlines()[1:]]
-    samples = [(float(r[0]), float(r[3])) for r in rows]
+    samples = [(float(r[0]), float(r[3])) for r in rows if int(r[2]) == a.gpu_index]
 
     def mean_w(t0, t1):
         w = [p for t, p in samples if t0 <= t <= t1]

@@ -1,0 +1,126 @@
+{
+  "gpu": {
+    "name": "NVIDIA RTX 2000 Ada Generation",
+    "memory.total": "16380 MiB",
+    "power.limit": "70.00 W",
+    "driver_version": "595.91.07",
+    "clocks.max.sm": "3105 MHz"
+  },
+  "server": {
+    "total_slots": 4,
+    "n_ctx": 8192,
+    "build_info": "b11923-de5122d87"
+  },
+  "model": "Qwen3-8B Q4_K_M",
+  "output_tokens": 256,
+  "speed_tps": 41.66,
+  "prefill_tps": 1999.9,
+  "decode_by_concurrency": {
+    "1": {
+      "total_tps": 41.66,
+      "per_request_tps": 41.91,
+      "runs": [
+        38.84,
+        41.68,
+        41.66
+      ]
+    },
+    "2": {
+      "total_tps": 79.72,
+      "per_request_tps": 40.28,
+      "runs": [
+        79.7,
+        79.73,
+        79.72
+      ]
+    },
+    "3": {
+      "total_tps": 112.87,
+      "per_request_tps": 38.19,
+      "runs": [
+        112.94,
+        112.86,
+        112.87
+      ]
+    },
+    "4": {
+      "total_tps": 133.4,
+      "per_request_tps": 33.94,
+      "runs": [
+        133.7,
+        133.4,
+        133.32
+      ]
+    }
+  },
+  "speedup_vs_1": {
+    "1": 1,
+    "2": 1.91,
+    "3": 2.71,
+    "4": 3.2
+  },
+  "prefill_by_length": {
+    "short": {
+      "prompt_tokens": 303,
+      "prefill_tps": 1801.5,
+      "runs": [
+        1850.3,
+        1775.3,
+        1801.5
+      ]
+    },
+    "medium": {
+      "prompt_tokens": 1827,
+      "prefill_tps": 1999.9,
+      "runs": [
+        1999.9,
+        2004.1,
+        1997.1
+      ]
+    },
+    "long": {
+      "prompt_tokens": 5547,
+      "prefill_tps": 1804,
+      "runs": [
+        1804.7,
+        1802.1,
+        1804
+      ]
+    }
+  },
+  "power": {
+    "idle": {
+      "mean_w": 7.5,
+      "samples": 15
+    },
+    "prefill_short": {
+      "mean_w": 24,
+      "samples": 1
+    },
+    "prefill_medium": {
+      "mean_w": 64.6,
+      "samples": 3
+    },
+    "prefill_long": {
+      "mean_w": 61.5,
+      "samples": 8
+    },
+    "decode_1": {
+      "mean_w": 68.3,
+      "samples": 19
+    },
+    "decode_2": {
+      "mean_w": 68.6,
+      "samples": 19
+    },
+    "decode_3": {
+      "mean_w": 69.1,
+      "samples": 21
+    },
+    "decode_4": {
+      "mean_w": 69,
+      "samples": 23
+    }
+  },
+  "time": "2026-10-31 07:44:05"
+}
