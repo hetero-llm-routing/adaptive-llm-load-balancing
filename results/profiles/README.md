@@ -12,6 +12,7 @@ tokens each), temperature 0, 256 output tokens per request (`ignore_eos`), media
 | RTX 4090 | 150.6 | 269.8 | 359.0 | 450.4 | 2.99 | 119.4 |
 | RTX A6000 | 114.8 | 208.7 | 273.5 | 325.8 | 2.84 | 84.6 |
 | RTX 2000 Ada | 41.7 | 79.7 | 112.9 | 133.4 | 3.20 | 33.9 |
+| T4 (Kaggle, simulation only) | 32.7 | 50.8 | 53.0 | 64.2 | 1.96 | 16.3 |
 
 These are the `speed_by_n` values in `config_testbed.yaml`; the simulator and the predictive
 strategy interpolate between them and keep s(4) above four running requests (A5 in Section 3.2).
@@ -23,6 +24,7 @@ strategy interpolate between them and keep s(4) above four running requests (A5 
 | RTX 4090 | 8,655 | 11,836 | 10,774 |
 | RTX A6000 | 4,423 | 4,802 | 4,389 |
 | RTX 2000 Ada | 1,802 | 2,000 | 1,804 |
+| T4 | 1,023 | 1,131 | 995 |
 
 ## Power (W, mean over each measurement)
 
@@ -31,6 +33,7 @@ strategy interpolate between them and keep s(4) above four running requests (A5 
 | RTX 4090 | 22.8 | 285.9 | 350.3 |
 | RTX A6000 | 36.8 | 289.5 | 295.0 |
 | RTX 2000 Ada | 7.5 | 68.3 | 69.0 (power limit 70 W) |
+| T4 | 27.2 | 66.6 | 65.6 (power limit 70 W) |
 
 Energy per output token at four running requests: 4090 0.78 J, A6000 0.91 J, 2000 Ada 0.52 J.
 The fastest GPU is not the most efficient one, and the A6000 is the least efficient (H3).
@@ -48,4 +51,8 @@ The fastest GPU is not the most efficient one, and the A6000 is the least effici
 - **Node agent.** The RunPod image runs nginx on the exposed ports and forwards 8081 to 8080. The
   agent therefore listens on 8082 and `runpod_node.sh` points nginx's 8081 to it; reading
   `/time` from another pod through the proxy took 0.13 to 0.32 s.
-- T4 and P100: measured on Kaggle with `scripts/kaggle_profile.py` (added below when done).
+- **T4** measured on Kaggle (`scripts/kaggle_profile.py`, committed notebook version, driver 580.178,
+  same llama.cpp build b11923). Unlike the newer GPUs, batching helps it little (1.96 times at four
+  requests, flat between 2 and 3), and its energy per token at four requests is 1.02 J, the highest of
+  the four GPUs.
+- **P100**: Kaggle no longer offers the P100 accelerator (only T4 x2), so it is not measured.

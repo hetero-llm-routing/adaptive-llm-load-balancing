@@ -1,7 +1,8 @@
 """Profile the T4 and the P100 on Kaggle with the same method as the RunPod GPUs (task #46).
 
-Run in a Kaggle notebook (Internet on) with Accelerator = GPU T4 x2 or GPU P100, after copying
-the repository to /kaggle/working/code:
+Run in a Kaggle notebook (Internet on) with Accelerator = GPU T4 x2, after copying the repository
+to /kaggle/working/code. Use Save Version > Save & Run All: an interactive session stops when
+idle and loses the build (about 40 minutes on 4 CPUs). Kaggle no longer offers the P100.
 
     !python /kaggle/working/code/scripts/kaggle_profile.py
 
