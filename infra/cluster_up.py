@@ -24,7 +24,8 @@ PROFILE_FOR = {"rtx4090": "geforce_rtx_4090", "rtxa6000": "rtx_a6000", "rtx2000a
 
 
 def get(url, timeout=10):
-    with urllib.request.urlopen(url, timeout=timeout) as r:
+    # RunPod proxy (Cloudflare) refuses the default Python-urllib user agent
+    with urllib.request.urlopen(urllib.request.Request(url, headers={"User-Agent": "lb-runner/1.0"}), timeout=timeout) as r:
         body = r.read()
     try:
         return json.loads(body)
