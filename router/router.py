@@ -126,6 +126,17 @@ async def start_polling():
 def log_row(row):
     WRITER.writerow(row)
     CSV_FILE.flush()
+    # Strategies that learn from finished requests (the RL strategy) may define
+    # on_complete(request_id, gpu, ttft_ms, e2e_ms, output_len); others are not affected.
+    hook = getattr(STRATEGY, "on_complete", None)
+    if hook:
+        try:
+            hook(row["request_id"], row["gpu"], float(row["ttft_ms"]), float(row["e2e_ms"]), int(row["output_len"]))
+        except Exception as e:                      # a strategy bug must not stop the run
+            print("on_complete failed:", e, file=sys.stderr)
+
+
+REQ_TYPES = ("chat", "doc", "rag")             # chat, long-document, retrieval-augmented
 
 
 @app.post("/v1/chat/completions")
@@ -133,7 +144,7 @@ async def chat(req: Request):
     body = await req.json()
     arrival = time.time()
     lb_req = LbRequest(request_id=uuid.uuid4().hex[:12], prompt_len=prompt_tokens(body),
-                       req_type=req.headers.get("x-request-type", "chat"), arrival_ts=arrival)
+                       req_type=_req_type(req.headers.get("x-request-type", "chat")), arrival_ts=arrival)
     states = await current_states()
     gpu = STRATEGY.choose_gpu(lb_req, states)
     url = NODES[gpu]["url"] + "/v1/chat/completions"
@@ -188,15 +199,25 @@ async def chat(req: Request):
     return StreamingResponse(relay(), media_type="text/event-stream")
 
 
+def _req_type(v):
+    v = (v or "chat").strip().lower()
+    return v if v in REQ_TYPES else "chat"
+
+
 def main():
     global CFG, NODES, STRATEGY, WRITER, CSV_FILE
     ap = argparse.ArgumentParser()
     ap.add_argument("--config", default="config.yaml")
+    # overrides used by the experiment runner, so one config file serves a whole matrix
+    ap.add_argument("--strategy"); ap.add_argument("--run-id"); ap.add_argument("--results-dir"); ap.add_argument("--port", type=int)
     a = ap.parse_args()
     CFG = yaml.safe_load(open(a.config))
+    for key, val in (("strategy", a.strategy), ("run_id", a.run_id), ("results_dir", a.results_dir), ("port", a.port)):
+        if val is not None:
+            CFG["router"][key] = val
     NODES = {n["name"]: n for n in CFG["nodes"]}
     STRATEGY = importlib.import_module("strategies." + CFG["router"]["strategy"])
-    out = Path(CFG["router"]["results_dir"]); out.mkdir(exist_ok=True)
+    out = Path(CFG["router"]["results_dir"]); out.mkdir(parents=True, exist_ok=True)
     path = out / f"{CFG['router']['run_id']}_{CFG['router']['strategy']}_{int(time.time())}.csv"
     CSV_FILE = open(path, "w", newline="")
     WRITER = csv.DictWriter(CSV_FILE, fieldnames=CSV_COLUMNS); WRITER.writeheader()
