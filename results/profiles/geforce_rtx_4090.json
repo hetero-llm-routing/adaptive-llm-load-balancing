@@ -1,0 +1,126 @@
+{
+  "gpu": {
+    "name": "NVIDIA GeForce RTX 4090",
+    "memory.total": "24564 MiB",
+    "power.limit": "450.00 W",
+    "driver_version": "595.91.07",
+    "clocks.max.sm": "3105 MHz"
+  },
+  "server": {
+    "total_slots": 4,
+    "n_ctx": 8192,
+    "build_info": "b11923-de5122d87"
+  },
+  "model": "Qwen3-8B Q4_K_M",
+  "output_tokens": 256,
+  "speed_tps": 150.61,
+  "prefill_tps": 11836.4,
+  "decode_by_concurrency": {
+    "1": {
+      "total_tps": 150.61,
+      "per_request_tps": 154.41,
+      "runs": [
+        116.38,
+        150.74,
+        150.61
+      ]
+    },
+    "2": {
+      "total_tps": 269.82,
+      "per_request_tps": 140.22,
+      "runs": [
+        273.12,
+        269.82,
+        266.83
+      ]
+    },
+    "3": {
+      "total_tps": 358.99,
+      "per_request_tps": 124.53,
+      "runs": [
+        358.99,
+        356.02,
+        359.47
+      ]
+    },
+    "4": {
+      "total_tps": 450.43,
+      "per_request_tps": 119.43,
+      "runs": [
+        451.88,
+        450.4,
+        450.43
+      ]
+    }
+  },
+  "speedup_vs_1": {
+    "1": 1,
+    "2": 1.79,
+    "3": 2.38,
+    "4": 2.99
+  },
+  "prefill_by_length": {
+    "short": {
+      "prompt_tokens": 303,
+      "prefill_tps": 8655.2,
+      "runs": [
+        8734,
+        8645.4,
+        8655.2
+      ]
+    },
+    "medium": {
+      "prompt_tokens": 1827,
+      "prefill_tps": 11836.4,
+      "runs": [
+        11690.2,
+        11836.4,
+        11984.5
+      ]
+    },
+    "long": {
+      "prompt_tokens": 5547,
+      "prefill_tps": 10773.9,
+      "runs": [
+        10753.8,
+        10773.9,
+        10797.3
+      ]
+    }
+  },
+  "power": {
+    "idle": {
+      "mean_w": 22.8,
+      "samples": 15
+    },
+    "prefill_short": {
+      "mean_w": null,
+      "samples": 0
+    },
+    "prefill_medium": {
+      "mean_w": 184.5,
+      "samples": 1
+    },
+    "prefill_long": {
+      "mean_w": 278.7,
+      "samples": 2
+    },
+    "decode_1": {
+      "mean_w": 285.9,
+      "samples": 6
+    },
+    "decode_2": {
+      "mean_w": 323.9,
+      "samples": 6
+    },
+    "decode_3": {
+      "mean_w": 329.6,
+      "samples": 6
+    },
+    "decode_4": {
+      "mean_w": 350.3,
+      "samples": 7
+    }
+  },
+  "time": "2026-10-31 07:42:20"
+}

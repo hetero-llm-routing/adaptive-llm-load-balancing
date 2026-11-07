@@ -1,0 +1,16 @@
+# Pilot (task #60): one cell of the main experiment
+config: config_run.yaml
+calibration: results/calibration/calibration.json
+workloads_dir: bench/workloads
+results_dir: results/pilot
+duration_s: 240
+warmup_s: 30
+cooldown_s: 20
+drain_s: 300
+timeout_s: 600
+seeds: [1]
+strategies: [round_robin, weighted, least_load, predictive, marginal_cost]
+experiments:
+  - name: pilot
+    workloads: [mixed]
+    rho: [0.6]

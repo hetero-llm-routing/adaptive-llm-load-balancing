@@ -7,8 +7,9 @@ Fills the energy_j column of the requests file in place and prints, per node, th
 energy over the run, the part with no request on the node (idle), the output tokens
 and the energy per output token.
 
-Energy per output token of a node (the main energy metric) is the node's measured
-energy over the run divided by its output tokens. It does not depend on the method.
+Energy per output token of a node (the main energy metric, Eq. (9) in Section 3.3) is the
+node's measured energy over the run divided by its output tokens; the run is the same for all
+nodes, from the first arrival to the last completion. It does not depend on the method.
 
 Energy of one request (energy_j) needs a rule, because a GPU serves several requests
 at once. Each power sample i covers [t_i, t_i+1), with energy E_i = P_i * (t_i+1 - t_i).
@@ -56,12 +57,15 @@ def samples_for(node, power):
     return power[keys[0]] if keys else []
 
 
-def attribute(reqs, samples, method, max_gap):
-    """Returns (energy per request, total energy over the run, idle energy)."""
-    if not reqs or len(samples) < 2:
+def attribute(reqs, samples, method, max_gap, span=None):
+    """Returns (energy per request, total energy over the run, idle energy).
+
+    span = (start, end) of the run, the same for every node (Section 3.3: first arrival to
+    last completion of the whole run); default: the first and last request of this node.
+    """
+    if len(samples) < 2 or (not reqs and span is None):
         return [0.0] * len(reqs), 0.0, 0.0
-    span0 = min(r["a"] for r in reqs)
-    span1 = max(r["e"] for r in reqs)
+    span0, span1 = span if span else (min(r["a"] for r in reqs), max(r["e"] for r in reqs))
     energy = [0.0] * len(reqs)
     total = idle = 0.0
     for (t0, p), (t1, _) in zip(samples, samples[1:]):
@@ -117,10 +121,13 @@ def main():
         by_node[r["gpu"]].append({"i": i, "a": arr, "f": arr + float(r["ttft_ms"]) / 1000,
                                   "e": arr + float(r["e2e_ms"]) / 1000, "n": float(r["output_len"] or 0)})
 
-    summary = {"method": method, "nodes": {}}
-    for name, reqs in sorted(by_node.items()):
+    allr = [r for reqs in by_node.values() for r in reqs]
+    span = (min(r["a"] for r in allr), max(r["e"] for r in allr)) if allr else None
+    summary = {"method": method, "run_s": round(span[1] - span[0], 1) if span else 0, "nodes": {}}
+    for name in sorted(set(nodes) | set(by_node)):     # nodes with no request still use energy
+        reqs = by_node.get(name, [])
         samples = samples_for(nodes.get(name, {}), power)
-        energy, total, idle = attribute(reqs, samples, method, a.max_gap)
+        energy, total, idle = attribute(reqs, samples, method, a.max_gap, span)
         for r, e in zip(reqs, energy):
             rows[r["i"]]["energy_j"] = f"{e:.3f}"
         tokens = sum(r["n"] for r in reqs)
@@ -128,6 +135,11 @@ def main():
                                   "energy_j": round(total, 1), "idle_energy_j": round(idle, 1),
                                   "attributed_j": round(sum(energy), 1), "output_tokens": int(tokens),
                                   "j_per_token": round(total / tokens, 4) if tokens else None}
+
+    tot_e = sum(n["energy_j"] for n in summary["nodes"].values())
+    tot_n = sum(n["output_tokens"] for n in summary["nodes"].values())
+    summary["cluster"] = {"energy_j": round(tot_e, 1), "output_tokens": tot_n,
+                          "j_per_token": round(tot_e / tot_n, 4) if tot_n else None}
 
     with open(a.requests, "w", newline="") as f:
         w = csv.DictWriter(f, fieldnames=fields)

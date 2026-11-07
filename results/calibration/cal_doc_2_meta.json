@@ -1,0 +1,14 @@
+{
+  "family": "doc",
+  "rate": 1.2564422082196935,
+  "run_id": "cal_doc_2",
+  "strategy": "round_robin",
+  "seed": 102,
+  "start_ts": 1793454697.8822048,
+  "end_ts": 1793454937.2171366,
+  "n_sent": 213,
+  "n_failed": 14,
+  "power_rows": 734,
+  "requests_csv": "cal_doc_2_round_robin_1793454697.csv",
+  "max_lag_ms": 2.2
+}

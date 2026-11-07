@@ -1,0 +1,14 @@
+{
+  "family": "rag",
+  "rate": 2.692466776333446,
+  "run_id": "cal_rag_3",
+  "strategy": "round_robin",
+  "seed": 103,
+  "start_ts": 1793456950.861513,
+  "end_ts": 1793457191.9118626,
+  "n_sent": 469,
+  "n_failed": 55,
+  "power_rows": 740,
+  "requests_csv": "cal_rag_3_round_robin_1793456950.csv",
+  "max_lag_ms": 3.36
+}

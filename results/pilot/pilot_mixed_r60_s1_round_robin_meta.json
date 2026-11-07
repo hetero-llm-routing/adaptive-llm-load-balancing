@@ -1,0 +1,21 @@
+{
+  "experiment": "pilot",
+  "workload": "mixed",
+  "rho": 0.6,
+  "rate": 0.7524630352881598,
+  "sat_rate": 1.2541050588135998,
+  "arrival": "poisson",
+  "duration_s": 240,
+  "warmup_s": 30,
+  "config": "config_run.yaml",
+  "run_id": "pilot_mixed_r60_s1_round_robin",
+  "strategy": "round_robin",
+  "seed": 1,
+  "start_ts": 1793459573.7541564,
+  "end_ts": 1793459819.7143147,
+  "n_sent": 189,
+  "n_failed": 0,
+  "power_rows": 753,
+  "requests_csv": "pilot_mixed_r60_s1_round_robin_round_robin_1793459573.csv",
+  "max_lag_ms": 2.16
+}

@@ -72,6 +72,11 @@ async def read_states():
     async def one(name, node):
         # Fixed node speeds from config.yaml, so strategies need not read the file themselves
         extra = {k: float(node[k]) for k in SPEED_KEYS if node.get(k) is not None}
+        for k in ("speed_by_n", "power_by_n"):      # decode speed / power with 1..4 running requests (A5)
+            if node.get(k):
+                extra[k] = [float(x) for x in node[k]]
+        if node.get("idle_w") is not None:
+            extra["idle_w"] = float(node["idle_w"])
         if node["kind"] == "llamacpp":
             try:
                 return name, await llamacpp_state(name, node, extra)
@@ -92,9 +97,51 @@ async def read_states():
     return dict(await asyncio.gather(*[one(n, v) for n, v in NODES.items()]))
 
 
+# Node state is read in the background every router.state_interval_s seconds (0 = read before
+# every request, as before). Across machines one read can take most of a second (0.3 to 0.9 s
+# through the RunPod proxy), which must not be added to every request's latency.
+STATES = {}
+
+
+async def poll_states(interval):
+    global STATES
+    while True:
+        STATES = await read_states()
+        await asyncio.sleep(interval)
+
+
+async def current_states():
+    interval = float(CFG["router"].get("state_interval_s", 0) or 0)
+    if interval <= 0 or not STATES:
+        return await read_states()
+    # the router's own in-flight counts are always current, even between two reads
+    for name, s in STATES.items():
+        if s.extra is not None and "inflight" in s.extra:
+            s.extra["inflight"] = INFLIGHT.get(name, 0)
+    return STATES
+
+
+@app.on_event("startup")
+async def start_polling():
+    interval = float(CFG.get("router", {}).get("state_interval_s", 0) or 0)
+    if interval > 0:
+        asyncio.create_task(poll_states(interval))
+
+
 def log_row(row):
     WRITER.writerow(row)
     CSV_FILE.flush()
+    # Strategies that learn from finished requests (the RL strategy) may define
+    # on_complete(request_id, gpu, ttft_ms, e2e_ms, output_len); others are not affected.
+    hook = getattr(STRATEGY, "on_complete", None)
+    if hook:
+        try:
+            hook(row["request_id"], row["gpu"], float(row["ttft_ms"]), float(row["e2e_ms"]), int(row["output_len"]))
+        except Exception as e:                      # a strategy bug must not stop the run
+            print("on_complete failed:", e, file=sys.stderr)
+
+
+REQ_TYPES = ("chat", "doc", "rag")             # chat, long-document, retrieval-augmented
 
 
 @app.post("/v1/chat/completions")
@@ -102,8 +149,8 @@ async def chat(req: Request):
     body = await req.json()
     arrival = time.time()
     lb_req = LbRequest(request_id=uuid.uuid4().hex[:12], prompt_len=prompt_tokens(body),
-                       req_type=req.headers.get("x-request-type", "chat"), arrival_ts=arrival)
-    states = await read_states()
+                       req_type=_req_type(req.headers.get("x-request-type", "chat")), arrival_ts=arrival)
+    states = await current_states()
     gpu = STRATEGY.choose_gpu(lb_req, states)
     url = NODES[gpu]["url"] + "/v1/chat/completions"
     seed = req.headers.get("x-seed", "")
@@ -157,15 +204,25 @@ async def chat(req: Request):
     return StreamingResponse(relay(), media_type="text/event-stream")
 
 
+def _req_type(v):
+    v = (v or "chat").strip().lower()
+    return v if v in REQ_TYPES else "chat"
+
+
 def main():
     global CFG, NODES, STRATEGY, WRITER, CSV_FILE
     ap = argparse.ArgumentParser()
     ap.add_argument("--config", default="config.yaml")
+    # overrides used by the experiment runner, so one config file serves a whole matrix
+    ap.add_argument("--strategy"); ap.add_argument("--run-id"); ap.add_argument("--results-dir"); ap.add_argument("--port", type=int)
     a = ap.parse_args()
     CFG = yaml.safe_load(open(a.config))
+    for key, val in (("strategy", a.strategy), ("run_id", a.run_id), ("results_dir", a.results_dir), ("port", a.port)):
+        if val is not None:
+            CFG["router"][key] = val
     NODES = {n["name"]: n for n in CFG["nodes"]}
     STRATEGY = importlib.import_module("strategies." + CFG["router"]["strategy"])
-    out = Path(CFG["router"]["results_dir"]); out.mkdir(exist_ok=True)
+    out = Path(CFG["router"]["results_dir"]); out.mkdir(parents=True, exist_ok=True)
     path = out / f"{CFG['router']['run_id']}_{CFG['router']['strategy']}_{int(time.time())}.csv"
     CSV_FILE = open(path, "w", newline="")
     WRITER = csv.DictWriter(CSV_FILE, fieldnames=CSV_COLUMNS); WRITER.writeheader()

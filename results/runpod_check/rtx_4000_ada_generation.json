@@ -1,0 +1,76 @@
+{
+  "gpu": {
+    "name": "NVIDIA RTX 4000 Ada Generation",
+    "memory.total": "20475 MiB",
+    "power.limit": "130.00 W",
+    "driver_version": "595.91.07"
+  },
+  "llama_server": "http://127.0.0.1:8080",
+  "speeds": {
+    "speed_tps": 61.11,
+    "prefill_tps": 3803.2,
+    "decode_runs": [
+      61.01,
+      61.11,
+      61.18
+    ],
+    "prefill_runs": [
+      3803.2,
+      3831.5,
+      3796.4
+    ]
+  },
+  "batching": [
+    {
+      "concurrent": 1,
+      "total_tokens": 256,
+      "wall_s": 4.17,
+      "total_tps": 61.32,
+      "per_request_tps": 63.53,
+      "speedup_vs_1": 1.0
+    },
+    {
+      "concurrent": 2,
+      "total_tokens": 512,
+      "wall_s": 4.27,
+      "total_tps": 119.88,
+      "per_request_tps": 60.63,
+      "speedup_vs_1": 1.95
+    },
+    {
+      "concurrent": 4,
+      "total_tokens": 1024,
+      "wall_s": 5.06,
+      "total_tps": 202.21,
+      "per_request_tps": 54.41,
+      "speedup_vs_1": 3.3
+    }
+  ],
+  "power": {
+    "samples": 36,
+    "median_interval_s": 1.0,
+    "idle_w": [
+      13.9,
+      15
+    ],
+    "single_request_w": [
+      96.9,
+      6
+    ],
+    "batch_w": {
+      "1": [
+        126.8,
+        4
+      ],
+      "2": [
+        128.1,
+        4
+      ],
+      "4": [
+        120.7,
+        5
+      ]
+    }
+  },
+  "time": "2026-10-27 08:46:59"
+}

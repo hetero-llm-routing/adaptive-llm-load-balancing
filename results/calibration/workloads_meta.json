@@ -1,0 +1,33 @@
+{
+  "chat": {
+    "test": 1500,
+    "train": 1500,
+    "sha256": "0baba29286c8165971256e680b9217ded0240597d41ba598703dc95bf6eabbee",
+    "prompt_p50": 40,
+    "prompt_p95": 276,
+    "output_p50": 252,
+    "output_p95": 697
+  },
+  "doc": {
+    "test": 235,
+    "train": 236,
+    "sha256": "d8a3fe557c9283443cd1d7c5631cd8f620e68cf3b93d6e181b8d612357cc2ce5",
+    "prompt_p50": 3269,
+    "prompt_p95": 5778,
+    "output_p50": 128,
+    "output_p95": 512
+  },
+  "rag": {
+    "test": 1500,
+    "train": 1500,
+    "sha256": "db009acdac8dcff519a0f4c54314831287673a7f00b8223dac0960c3ee1d651e",
+    "prompt_p50": 664,
+    "prompt_p95": 1004,
+    "output_p50": 137,
+    "output_p95": 467
+  },
+  "mixed": {
+    "test": 1500,
+    "sha256": "cb5dbe9de613db5ae3a75d74db4c63fa3e45c59d91024b885ae119fc753a5dcb"
+  }
+}

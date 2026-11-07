@@ -11,8 +11,8 @@ from typing import Dict
 @dataclass
 class Request:
     request_id: str
-    prompt_len: int            # tokens in the prompt (known on arrival)
-    req_type: str = "chat"     # "chat" or "rag"
+    prompt_len: int            # tokens in the prompt (estimated on arrival)
+    req_type: str = "chat"     # "chat", "doc" (long document) or "rag"
     arrival_ts: float = 0.0    # seconds since the epoch
 
 

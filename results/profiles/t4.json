@@ -1,0 +1,127 @@
+{
+  "gpu": {
+    "name": "Tesla T4",
+    "memory.total": "15360 MiB",
+    "power.limit": "70.00 W",
+    "driver_version": "580.178.04",
+    "clocks.max.sm": "1590 MHz"
+  },
+  "server": {
+    "total_slots": 4,
+    "n_ctx": 8192,
+    "build_info": "b11923-de5122d87"
+  },
+  "model": "Qwen3-8B Q4_K_M",
+  "output_tokens": 256,
+  "speed_tps": 32.73,
+  "prefill_tps": 1131.0,
+  "decode_by_concurrency": {
+    "1": {
+      "total_tps": 32.73,
+      "per_request_tps": 33.79,
+      "runs": [
+        31.57,
+        33.54,
+        32.73
+      ]
+    },
+    "2": {
+      "total_tps": 50.82,
+      "per_request_tps": 25.68,
+      "runs": [
+        52.32,
+        50.82,
+        48.83
+      ]
+    },
+    "3": {
+      "total_tps": 52.97,
+      "per_request_tps": 17.85,
+      "runs": [
+        56.9,
+        52.97,
+        50.78
+      ]
+    },
+    "4": {
+      "total_tps": 64.18,
+      "per_request_tps": 16.26,
+      "runs": [
+        61.05,
+        64.18,
+        64.27
+      ]
+    }
+  },
+  "speedup_vs_1": {
+    "1": 1.0,
+    "2": 1.55,
+    "3": 1.62,
+    "4": 1.96
+  },
+  "prefill_by_length": {
+    "short": {
+      "prompt_tokens": 303,
+      "prefill_tps": 1022.5,
+      "runs": [
+        1038.4,
+        1022.5,
+        1021.1
+      ]
+    },
+    "medium": {
+      "prompt_tokens": 1827,
+      "prefill_tps": 1131.0,
+      "runs": [
+        1137.4,
+        1131.0,
+        1129.7
+      ]
+    },
+    "long": {
+      "prompt_tokens": 5547,
+      "prefill_tps": 994.7,
+      "runs": [
+        1000.6,
+        994.7,
+        987.6
+      ]
+    }
+  },
+  "power": {
+    "idle": {
+      "mean_w": 27.2,
+      "samples": 15
+    },
+    "prefill_short": {
+      "mean_w": 73.7,
+      "samples": 1
+    },
+    "prefill_medium": {
+      "mean_w": 68.4,
+      "samples": 5
+    },
+    "prefill_long": {
+      "mean_w": 60.0,
+      "samples": 14
+    },
+    "decode_1": {
+      "mean_w": 66.6,
+      "samples": 23
+    },
+    "decode_2": {
+      "mean_w": 67.1,
+      "samples": 30
+    },
+    "decode_3": {
+      "mean_w": 66.2,
+      "samples": 43
+    },
+    "decode_4": {
+      "mean_w": 65.6,
+      "samples": 48
+    }
+  },
+  "time": "2026-10-31 09:49:46",
+  "platform": "Kaggle notebook deveks2025/notebookc038299ed7, version 1 (GPU T4 x2, GPU 0 used)"
+}

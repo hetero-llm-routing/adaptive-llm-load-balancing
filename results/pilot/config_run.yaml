@@ -1,0 +1,64 @@
+router:
+  host: 0.0.0.0
+  port: 8000
+  strategy: round_robin
+  results_dir: results
+  run_id: testbed
+  state_interval_s: 0.25
+energy:
+  method: tokens
+model:
+  name: Qwen3-8B
+  hf_repo: Qwen/Qwen3-8B
+  gguf_quant: Q4_K_M
+  max_context: 8192
+  thinking: false
+nodes:
+- name: rtx4090
+  url: https://POD-ID-8080.proxy.runpod.net
+  kind: llamacpp
+  gpu_index: 0
+  agent: https://POD-ID-8081.proxy.runpod.net
+  slots: 4
+  n_ctx: 8192
+  host: e12be5428e33
+  clock_offset_s: 0.067
+  speed_tps: 150.61
+  prefill_tps: 11836.4
+  speed_by_n:
+  - 150.61
+  - 269.82
+  - 358.99
+  - 450.43
+- name: rtxa6000
+  url: https://POD-ID-8080.proxy.runpod.net
+  kind: llamacpp
+  gpu_index: 0
+  agent: https://POD-ID-8081.proxy.runpod.net
+  slots: 4
+  n_ctx: 8192
+  host: 3fd9c35e38b7
+  clock_offset_s: 0.039
+  speed_tps: 114.79
+  prefill_tps: 4801.9
+  speed_by_n:
+  - 114.79
+  - 208.74
+  - 273.51
+  - 325.77
+- name: rtx2000ada
+  url: https://POD-ID-8080.proxy.runpod.net
+  kind: llamacpp
+  gpu_index: 0
+  agent: https://POD-ID-8081.proxy.runpod.net
+  slots: 4
+  n_ctx: 8192
+  host: d1cc84773ee4
+  clock_offset_s: 0.157
+  speed_tps: 41.66
+  prefill_tps: 1999.9
+  speed_by_n:
+  - 41.66
+  - 79.72
+  - 112.87
+  - 133.4

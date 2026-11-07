@@ -1,0 +1,41 @@
+تسليم من إياد إلى م. أسامة — 31 أكتوبر 2026
+==========================================
+
+1) استراتيجية جديدة للقسم 4 (#57): marginal-cost routing
+   - الكود: strategies/marginal_cost.py (PR #66)
+   - المطلوب: إضافتها في القسم 4 كاستراتيجية إضافية ضمن العائلة التنبؤية (فقرة + معادلة التكلفة).
+   - النص الجاهز بالإنجليزي (عدّله بأسلوب القسم):
+
+   Most routers ask which node is least loaded. On a GPU that runs several requests at once,
+   however, a new request also slows every request already running there, and by an amount that
+   depends on the GPU: the RTX A6000 gains less from a fourth concurrent request than the RTX 4090
+   (Table III). The marginal-cost strategy therefore sends each request to the node where it adds
+   the least to the total latency of all requests, plus a weighted amount of the energy it adds.
+   Dispatching by marginal cost is known from queueing theory [H]; here the costs are computed from
+   the measured profile of each GPU (A5) instead of a queueing model.
+
+   For a request with estimated prompt length P and predicted output length L, and a node j that
+   runs n requests with remaining output r_i (n < 4), the strategy computes its own completion time
+   T_j = P/p_j + L/v_j(n+1), where v_j(n) = s_j(n)/n is the per-request decode speed; the slowdown
+   it causes, D_j = sum_i [ P/p_j + min(r_i, L) (1/v_j(n+1) - 1/v_j(n)) ]; and the extra energy E_j,
+   the rise in measured power from n to n+1 running requests over the time both overlap, plus the
+   rise from idle if the request keeps the node busy longer. When all four slots are busy, T_j
+   includes the expected wait for a free slot and D_j = 0. The node with the smallest
+   C_j = T_j + D_j + lambda E_j is chosen. With lambda = 0 the strategy minimizes latency only; a
+   larger lambda trades latency for energy, so one parameter gives the latency-energy trade-off curve.
+
+   The decision needs only the profile of each node and the requests the router has sent, which it
+   already tracks; its cost is a few arithmetic operations per node, far below that of the RL policy.
+
+   [H] E. Hyytiä, A. Penttinen, and S. Aalto, "Size- and state-aware dispatching problem with
+       queue-specific job sizes," Eur. J. Oper. Res., vol. 217, no. 2, pp. 357-370, 2012.
+
+2) للتحقق من المحاكي (#61): نتائج الـ pilot الحقيقية جاهزة
+   - results/pilot/       : 4 استراتيجيات، الطلبات المخلوطة، ضغط 0.6، بذرة 1 (ملفات CSV للطلبات والطاقة)
+   - results/pilot2/README.md : نفس التجربة مع الاستراتيجية الجديدة على أجهزة ثانية
+   - results/calibration/ : نقطة التشبع لكل نوع طلبات (chat 1.84, doc 0.98, rag 2.15, mixed 1.25 طلب/ثانية)
+
+3) لـ #48: scripts/sim_a5.py محاكي سريع بيستخدم السرعة والطاقة المقاسة حسب عدد الطلبات (A5).
+   ممكن تستفيد منه أو تبني عليه. ضايل عليك تطبيق A5 في الاستراتيجية التنبؤية وفي strategies/mock_sim.py.
+
+4) PR #66 جاهز للمراجعة: الكود، وقياسات الكروت، والـ runner، والاستراتيجية الجديدة.

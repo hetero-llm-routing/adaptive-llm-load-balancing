@@ -103,6 +103,18 @@ def test_energy_conserved():
         assert abs(sum(e) + idle - total) < 1e-6
 
 
+def test_energy_run_span_counts_idle_edges():
+    # node busy only from 4 to 6 s of a 0 to 10 s run: the rest of the run is idle energy
+    reqs = [{"a": 4, "f": 4, "e": 6, "n": 10}]
+    e, total, idle = attribute(reqs, samples(100), "tokens", 5, span=(0, 10))
+    assert abs(total - 1000) < 1e-6 and abs(idle - 800) < 1e-6 and abs(e[0] - 200) < 1e-6
+
+
+def test_energy_node_without_requests_is_all_idle():
+    e, total, idle = attribute([], samples(50), "tokens", 5, span=(0, 10))
+    assert e == [] and abs(total - 500) < 1e-6 and abs(idle - 500) < 1e-6
+
+
 if __name__ == "__main__":
     tests = [(k, v) for k, v in sorted(globals().items()) if k.startswith("test_")]
     for name, fn in tests:
