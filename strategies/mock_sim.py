@@ -43,13 +43,23 @@ class Node:
     speed_tps: float
     prefill_tps: float = 600.0
     max_running: int = 4
+    speed_by_n: list = None     # total decode speed with 1..4 running requests (A5); None: speed_tps shared
     queue: list = field(default_factory=list)
     running: list = field(default_factory=list)
 
     def state(self):
         return GpuState(queue_len=len(self.queue), running=len(self.running),
                         kv_usage=len(self.running) / self.max_running,
-                        extra={"speed_tps": self.speed_tps, "prefill_tps": self.prefill_tps})
+                        extra={"speed_tps": self.speed_tps, "prefill_tps": self.prefill_tps,
+                               **({"speed_by_n": self.speed_by_n} if self.speed_by_n else {})})
+
+    def rate(self):
+        """Per-request decode speed with the current number of running requests (A5)."""
+        k = len(self.running)
+        if not k:
+            return 0.0
+        total = self.speed_by_n[min(k, len(self.speed_by_n)) - 1] if self.speed_by_n else self.speed_tps
+        return total / k
 
 
 def workload(n, rate, seed, rag_share=0.3):
@@ -84,7 +94,7 @@ def simulate(strategy, jobs, nodes):
         # next event: an arrival, a prefill end, a first token or a request end
         nxt = pending[i].req.arrival_ts if i < len(pending) else float("inf")
         for n in nodes.values():
-            rate = n.speed_tps / len(n.running) if n.running else 0
+            rate = n.rate()
             for j in n.running:
                 if j.prefill_end > now + eps:
                     nxt = min(nxt, j.prefill_end)
@@ -95,7 +105,7 @@ def simulate(strategy, jobs, nodes):
         # advance every decoding request
         for n in nodes.values():
             if n.running:
-                rate = n.speed_tps / len(n.running)
+                rate = n.rate()
                 for j in n.running:
                     if j.prefill_end <= now + eps:
                         j.done_tokens += rate * dt

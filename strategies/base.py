@@ -14,6 +14,7 @@ class Request:
     prompt_len: int            # tokens in the prompt (estimated on arrival)
     req_type: str = "chat"     # "chat", "doc" (long document) or "rag"
     arrival_ts: float = 0.0    # seconds since the epoch
+    true_output_len: int = None  # known only in experiments (max_tokens with ignore_eos); used by the oracle only
 
 
 @dataclass

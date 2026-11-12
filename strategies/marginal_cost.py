@@ -40,7 +40,7 @@ ROOT = Path(__file__).resolve().parents[1]
 UNREACHABLE = 10**6
 SLOTS = 4
 PREDICTOR = LengthPredictor.load(os.environ.get("LB_LENGTH_TABLE", ROOT / "strategies" / "length_table.json"))
-LAMBDA = float(os.environ.get("LB_MC_LAMBDA", "0") or 0)
+LAMBDA = float(os.environ.get("LB_MC_LAMBDA", "0.002") or 0)   # fixed on the simulator (largest value within 10% of the fastest p95 at every load)
 
 _running = {}        # node -> {request_id: [start_ts, prompt_len, predicted_len]}
 

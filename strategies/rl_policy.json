@@ -1,0 +1,86 @@
+{
+  "theta": [
+    2.3452945705248307e-10,
+    -0.3071131602820125,
+    -1.7575652882368986,
+    -5.815608508281413,
+    -4.560439113669971,
+    -4.705832103237075,
+    -4.5930231818509215,
+    2.0284928706124066
+  ],
+  "features": [
+    "bias",
+    "running/4",
+    "waiting/4",
+    "prefill_s",
+    "own_decode_s/10",
+    "decode_s_alone/10",
+    "idle",
+    "extra_power/100"
+  ],
+  "eval_e2e_p95_s": 6.703701196910856,
+  "episodes": 1500,
+  "log": [
+    {
+      "episode": 100,
+      "eval_e2e_p95_s": 6.799
+    },
+    {
+      "episode": 200,
+      "eval_e2e_p95_s": 7.375
+    },
+    {
+      "episode": 300,
+      "eval_e2e_p95_s": 7.314
+    },
+    {
+      "episode": 400,
+      "eval_e2e_p95_s": 7.139
+    },
+    {
+      "episode": 500,
+      "eval_e2e_p95_s": 7.018
+    },
+    {
+      "episode": 600,
+      "eval_e2e_p95_s": 6.856
+    },
+    {
+      "episode": 700,
+      "eval_e2e_p95_s": 6.797
+    },
+    {
+      "episode": 800,
+      "eval_e2e_p95_s": 6.727
+    },
+    {
+      "episode": 900,
+      "eval_e2e_p95_s": 6.747
+    },
+    {
+      "episode": 1000,
+      "eval_e2e_p95_s": 6.758
+    },
+    {
+      "episode": 1100,
+      "eval_e2e_p95_s": 6.704
+    },
+    {
+      "episode": 1200,
+      "eval_e2e_p95_s": 6.748
+    },
+    {
+      "episode": 1300,
+      "eval_e2e_p95_s": 6.94
+    },
+    {
+      "episode": 1400,
+      "eval_e2e_p95_s": 6.725
+    },
+    {
+      "episode": 1500,
+      "eval_e2e_p95_s": 6.728
+    }
+  ]
+}

@@ -6,10 +6,12 @@ For every request the strategy
   2. estimates, for every node j, the work already waiting there in tokens (B_j),
   3. picks the node with the smallest expected completion time
 
-        T_j = (B_j + L) / s_j  +  P / p_j
+        T_j = (B_j + L) / s_j(n_j + 1)  +  P / p_j
 
-     where s_j is the node's decode speed (tokens/s), P the prompt length and
-     p_j the node's prefill speed (tokens/s).
+     where s_j(n) is the node's total decode speed (tokens/s) with n running
+     requests (speed_by_n, assumption A5; capped at n = 4; speed_tps if the
+     curve is not configured), n_j the requests on the node, P the prompt
+     length and p_j the node's prefill speed (tokens/s).
 
 How B_j is kept up to date without any feedback from the router:
   * When a request is sent to node j, its predicted length L is added to B_j.
@@ -60,6 +62,14 @@ def _speed(name, state, key, default):
     return float(v) if v else default
 
 
+def _speed_n(name, state, n, fallback):
+    """Total decode speed with n running requests (speed_by_n, A5), else the fixed speed."""
+    c = (state.extra or {}).get("speed_by_n") or _node_config().get(name, {}).get("speed_by_n")
+    if not c or n <= 0:
+        return fallback
+    return float(c[min(n, len(c)) - 1])
+
+
 def reset():
     """Forget all backlog (call between experiment runs or in tests)."""
     global _last_ts
@@ -79,12 +89,15 @@ def estimate(request, gpu_states):
     for name, st in gpu_states.items():
         s = _speed(name, st, "speed_tps", DEFAULT_SPEED_TPS)
         p = _speed(name, st, "prefill_tps", DEFAULT_PREFILL_TPS)
-        drained = max(0.0, _backlog.get(name, 0.0) - s * elapsed)
+        n = min(st.running + st.queue_len, 4) if st.queue_len < UNREACHABLE else 0
+        s_now = _speed_n(name, st, n, s)              # A5: the node drains at its speed with n running
+        s_new = _speed_n(name, st, n + 1, s)
+        drained = max(0.0, _backlog.get(name, 0.0) - s_now * elapsed)
         observed = (st.queue_len + st.running) * PREDICTOR.global_mean
         _backlog[name] = max(drained, observed) if st.queue_len < UNREACHABLE else drained
         if st.queue_len >= UNREACHABLE:
             continue
-        out[name] = (_backlog[name] + L) / s + request.prompt_len / p
+        out[name] = (_backlog[name] + L) / s_new + request.prompt_len / p
     return out, L
 
 
