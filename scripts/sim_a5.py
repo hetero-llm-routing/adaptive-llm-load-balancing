@@ -106,7 +106,8 @@ def simulate(mod, jobs, nodes, dt=0.02, lam=None, keep=False, cal=None):
     E = sum(s["energy"] for s in st.values())
     share = {n: sum(1 for r in done if r["gpu"] == n) / len(done) for n in nodes}
     out = {"ttft_p50": q(ttft, .5), "ttft_p95": q(ttft, .95), "e2e_p50": q(e2e, .5), "e2e_p95": q(e2e, .95),
-            "j_per_token": E / toks, "share": share}
+            "j_per_token": E / toks, "share": share,
+            "energy_by_node": {n: s["energy"] for n, s in st.items()}}   # J over the run, per node
     if keep:
         out["jobs"] = done
     return out
