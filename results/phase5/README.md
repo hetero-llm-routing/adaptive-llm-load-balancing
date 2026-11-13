@@ -1,5 +1,6 @@
 # Phase 5: experiment matrix on the real cluster (Nov 2026)
 
+Matrix: `bench/matrix_phase5.yaml` (`python bench/run_matrix.py --matrix bench/matrix_phase5.yaml`).
 Real runs on RunPod: RTX 4090, RTX A6000 and RTX 2000 Ada behind the router, Qwen3-8B Q4_K_M,
 llama.cpp with 4 slots per node, energy from the measured power of every node. 195 runs, no failed
 requests. These files are the source of every number in Section 6.

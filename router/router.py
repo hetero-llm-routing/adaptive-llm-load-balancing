@@ -149,7 +149,8 @@ async def chat(req: Request):
     body = await req.json()
     arrival = time.time()
     lb_req = LbRequest(request_id=uuid.uuid4().hex[:12], prompt_len=prompt_tokens(body),
-                       req_type=_req_type(req.headers.get("x-request-type", "chat")), arrival_ts=arrival)
+                       req_type=_req_type(req.headers.get("x-request-type", "chat")), arrival_ts=arrival,
+                       true_output_len=int(body["max_tokens"]) if body.get("ignore_eos") and body.get("max_tokens") else None)
     states = await current_states()
     gpu = STRATEGY.choose_gpu(lb_req, states)
     url = NODES[gpu]["url"] + "/v1/chat/completions"

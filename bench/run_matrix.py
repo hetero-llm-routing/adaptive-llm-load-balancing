@@ -9,7 +9,7 @@ rho x the round-robin saturation rate of the workload (bench/calibrate.py). Ever
 into results_dir: <run>_*.csv (router), <run>_client.csv, <run>_power.csv, <run>_energy.json,
 <run>_meta.json. A run whose meta file exists is skipped, so an interrupted matrix resumes.
 """
-import argparse, itertools, json, random, time
+import argparse, itertools, json, os, random, time
 from pathlib import Path
 
 import yaml
@@ -21,7 +21,7 @@ def cells(m, only=None):
     for exp in m["experiments"]:
         if only and exp["name"] not in only:
             continue
-        for wl, rho, seed in itertools.product(exp["workloads"], exp["rho"], m["seeds"]):
+        for wl, rho, seed in itertools.product(exp["workloads"], exp["rho"], exp.get("seeds", m["seeds"])):
             strategies = list(exp.get("strategies", m["strategies"]))
             random.Random(f"{seed}-{wl}-{rho}-{exp['name']}").shuffle(strategies)
             yield exp, wl, rho, seed, strategies
@@ -60,8 +60,12 @@ def main():
                 continue
             meta = dict(experiment=exp["name"], workload=wl, rho=rho, rate=rate, sat_rate=sat, arrival=arrival,
                         duration_s=m["duration_s"], warmup_s=m.get("warmup_s", 30), config=m["config"], **extra)
+            env_old = {k: os.environ.get(k) for k in exp.get("env", {})}
+            os.environ.update({k: str(v) for k, v in exp.get("env", {}).items()})   # e.g. LB_MC_LAMBDA for the sweep
             mm, req_csv, _ = R.run_once(m["config"], s, rid, out, sched, seed, m.get("timeout_s", 600), meta,
                                          drain_s=m.get("drain_s", 300))
+            for k, v in env_old.items():
+                os.environ.pop(k, None) if v is None else os.environ.__setitem__(k, v)
             print("   ", R.summarize(req_csv, m.get("warmup_s", 30), mm["start_ts"]),
                   f"failed={mm['n_failed']} power_rows={mm['power_rows']} max_lag_ms={mm['max_lag_ms']}", flush=True)
             time.sleep(m.get("cooldown_s", 30))
