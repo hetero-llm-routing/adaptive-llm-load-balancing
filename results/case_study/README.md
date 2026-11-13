@@ -30,3 +30,18 @@ Round robin gives the RTX 2000 Ada the same share as the faster GPUs, so its que
 of the whole burst; marginal-cost routing sends most calls to the RTX 4090 and RTX A6000 and
 finishes the burst 40% sooner. One burst per strategy, so these numbers illustrate the behaviour
 measured in Section 6 and are not a replacement for it.
+
+## Three bursts per strategy, with energy (`case_bursts.csv`)
+
+The burst was then repeated three times per strategy, alternating the strategies, with the router
+restarted and 25 s of idle time before each burst. Energy is the measured power of the three GPUs
+(1 s samples from each node agent) over the burst, divided by the tokens the router reports.
+
+| Strategy | All answered after (s) | p95 per question (s) | J per token |
+|---|---|---|---|
+| Marginal cost | 21.6 (19.7–22.6) | 17.6 (16.0–18.7) | 2.47 (2.30–2.67) |
+| Round robin | 34.9 (25.9–46.2) | 29.3 (23.0–38.4) | 2.90 (2.59–3.10) |
+
+Means of the three bursts, with the range. Marginal-cost routing finished the bursts 38% sooner,
+with a 40% lower p95 and 15% less energy per token. Round robin varies more between bursts because
+its result depends on how many long answers land on the RTX 2000 Ada.
