@@ -1,0 +1,43 @@
+# The matrix that produced results/phase5 (195 real runs, Nov 2026). Run after bench/calibrate.py.
+# The oracle and power_of_two run in the simulator only (scripts/sim_scaling.py).
+config: config_run.yaml                 # written by infra/cluster_up.py
+calibration: results/calibration/calibration.json  # round-robin saturation rate per workload
+workloads_dir: bench/workloads
+results_dir: results/runs
+duration_s: 300                         # arrivals per run; requests of the first warmup_s are not analysed
+warmup_s: 30
+cooldown_s: 15                          # idle time between runs
+timeout_s: 600
+seeds: [1, 2, 3, 4, 5]
+strategies: [round_robin, weighted, least_load, least_work, predictive, rl, marginal_cost]
+experiments:
+  - name: main                          # RQ1, RQ2: 7 strategies x 3 loads x 5 seeds = 105
+    workloads: [mixed]
+    rho: [0.3, 0.6, 0.9]
+  - name: bytype                        # each request family alone: 7 x 3 x 3 seeds = 63
+    workloads: [chat, doc, rag]
+    rho: [0.6]
+    seeds: [1, 2, 3]
+  - name: bursts                        # Azure-trace bursts: 7 x 3 seeds = 21
+    workloads: [mixed]
+    rho: [0.6]
+    arrival: azure
+    seeds: [1, 2, 3]
+  - name: lambda0                     # marginal cost with lambda = 0 s/J (default 0.002 is in main): 2 seeds
+    workloads: [mixed]
+    rho: [0.6]
+    strategies: [marginal_cost]
+    seeds: [1, 2]
+    env: {LB_MC_LAMBDA: 0}
+  - name: lambda0005                     # marginal cost with lambda = 0.005 s/J (default 0.002 is in main): 2 seeds
+    workloads: [mixed]
+    rho: [0.6]
+    strategies: [marginal_cost]
+    seeds: [1, 2]
+    env: {LB_MC_LAMBDA: 0.005}
+  - name: lambda001                     # marginal cost with lambda = 0.01 s/J (default 0.002 is in main): 2 seeds
+    workloads: [mixed]
+    rho: [0.6]
+    strategies: [marginal_cost]
+    seeds: [1, 2]
+    env: {LB_MC_LAMBDA: 0.01}
