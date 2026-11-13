@@ -46,13 +46,23 @@ def sample(rng, n):
     return out
 
 
-def simulate(mod, jobs, nodes, dt=0.02, lam=None):
+# Calibration against the real pilot (scripts/validate_sim.py): decode and prompt speed of a
+# served request relative to the profile, fixed client-side time per request (HTTP, proxy), and
+# seconds a GPU keeps its busy power after its last request.
+CAL = {"speed_scale": 1.0, "prefill_scale": 1.0, "overhead_s": 0.0, "tail_s": 0.0}
+CAL_FILE = ROOT / "results" / "sim_calibration.json"
+if CAL_FILE.exists():
+    CAL.update(json.loads(CAL_FILE.read_text())["cal"])
+
+
+def simulate(mod, jobs, nodes, dt=0.02, lam=None, keep=False, cal=None):
+    c = dict(CAL, **(cal or {}))
     if hasattr(mod, "reset"):
         mod.reset()
     if lam is not None and hasattr(mod, "LAMBDA"):
         mod.LAMBDA = lam
-    st = {n: {"run": [], "queue": [], "energy": 0.0} for n in nodes}
-    t, i, done = 0.0, 0, []
+    st = {n: {"run": [], "queue": [], "energy": 0.0, "last": -1e9} for n in nodes}
+    t, i, done = (jobs[0]["at"] if jobs else 0.0), 0, []
     hook = getattr(mod, "on_complete", None)
     while i < len(jobs) or any(s["run"] or s["queue"] for s in st.values()):
         while i < len(jobs) and jobs[i]["at"] <= t:
@@ -60,7 +70,7 @@ def simulate(mod, jobs, nodes, dt=0.02, lam=None):
             states = {n: GpuState(queue_len=len(s["queue"]), running=len(s["run"]), kv_usage=len(s["run"]) / 4,
                                   extra=dict(nodes[n], inflight=len(s["run"]) + len(s["queue"])))
                       for n, s in st.items()}
-            req = Request(request_id=str(i), prompt_len=j["prompt_len"], req_type=j["req_type"], arrival_ts=t)
+            req = Request(request_id=str(i), prompt_len=j["prompt_len"], req_type=j["req_type"], arrival_ts=t, true_output_len=j["output_len"])
             g = mod.choose_gpu(req, states)
             j.update(gpu=g, pre=float(j["prompt_len"]), gen=0.0, first=None, id=str(i))
             st[g]["queue"].append(j)
@@ -69,20 +79,24 @@ def simulate(mod, jobs, nodes, dt=0.02, lam=None):
             while s["queue"] and len(s["run"]) < 4:
                 s["run"].append(s["queue"].pop(0))
             k = len(s["run"])
-            s["energy"] += (pr["power_by_n"][k - 1] if k else pr["idle_w"]) * dt
-            if not k:
+            if k:
+                s["last"] = t
+                s["energy"] += pr["power_by_n"][k - 1] * dt
+            else:                        # a GPU keeps its busy power for tail_s after its last request
+                s["energy"] += (pr["power_by_n"][0] if t - s["last"] < c["tail_s"] else pr["idle_w"]) * dt
                 continue
             pre = [r for r in s["run"] if r["pre"] > 0]
             if pre:                      # a prompt in progress pauses decoding (one at a time)
-                pre[0]["pre"] -= pr["prefill_tps"] * dt
+                pre[0]["pre"] -= pr["prefill_tps"] * c["prefill_scale"] * dt
                 continue
-            v = pr["speed_by_n"][k - 1] / k
+            v = pr["speed_by_n"][k - 1] / k * c["speed_scale"]
             for r in list(s["run"]):
                 r["gen"] += v * dt
                 if r["first"] is None:
                     r["first"] = t + dt
                 if r["gen"] >= r["output_len"]:
-                    r["end"] = t + dt; s["run"].remove(r); done.append(r)
+                    r["end"] = t + dt + c["overhead_s"]; r["first"] += c["overhead_s"]
+                    s["run"].remove(r); done.append(r)
                     if hook:
                         hook(r["id"], n, (r["first"] - r["at"]) * 1000, (r["end"] - r["at"]) * 1000, r["output_len"])
         t += dt
@@ -91,8 +105,12 @@ def simulate(mod, jobs, nodes, dt=0.02, lam=None):
     toks = sum(r["output_len"] for r in done)
     E = sum(s["energy"] for s in st.values())
     share = {n: sum(1 for r in done if r["gpu"] == n) / len(done) for n in nodes}
-    return {"ttft_p50": q(ttft, .5), "ttft_p95": q(ttft, .95), "e2e_p50": q(e2e, .5), "e2e_p95": q(e2e, .95),
-            "j_per_token": E / toks, "share": share}
+    out = {"ttft_p50": q(ttft, .5), "ttft_p95": q(ttft, .95), "e2e_p50": q(e2e, .5), "e2e_p95": q(e2e, .95),
+            "j_per_token": E / toks, "share": share,
+            "energy_by_node": {n: s["energy"] for n, s in st.items()}}   # J over the run, per node
+    if keep:
+        out["jobs"] = done
+    return out
 
 
 def main():
