@@ -1,0 +1,20 @@
+{
+  "model": "Qwen3-14B Q4_K_M, llama.cpp, 3 slots",
+  "measured_with": "scripts/profile_gpu.py (model label changed), 13 Nov 2026, RunPod",
+  "decode_total_tps_by_concurrency_1_to_4": {
+    "rtx4090": [78.16, 146.09, 216.38, 143.44],
+    "rtxa6000": [67.71, 125.39, 168.02, 124.69],
+    "rtx2000ada": [23.40, 45.42, 64.96, 45.21]
+  },
+  "prefill_tps_short_medium_long": {
+    "rtx4090": [5459.7, 6428.2, 5716.0],
+    "rtxa6000": [2513.0, 2861.2, 2573.7],
+    "rtx2000ada": [null, 1074.2, null]
+  },
+  "power_w": {
+    "rtx4090": {"idle": 19.1, "decode_1_to_4": [298.6, 306.9, 361.7, 319.5]},
+    "rtxa6000": {"idle": 29.8, "decode_1_to_4": [289.3, 297.3, 295.8, 296.5]},
+    "rtx2000ada": {"idle": 6.8, "decode_1_to_4": [68.5, 69.3, 69.3, 69.0]}
+  },
+  "note": "With 3 slots, the 4th concurrent request waits, so the value at 4 is below the value at 3. The router used these profiles with LB_SLOTS=3."
+}

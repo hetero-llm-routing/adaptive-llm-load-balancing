@@ -1,4 +1,8 @@
-# Case study: private assistant with RAG behind the router (Section 7.2)
+# Case study, exploratory run (superseded by `results/case_study_en/`)
+
+The paper (Section 7.2) uses the final run in `results/case_study_en/`: English questions, profiles
+measured for Qwen3-14B, five bursts per strategy. This first run used Arabic questions and the
+Qwen3-8B profiles; it is kept for reference.
 
 Run on 13 Nov 2026 on RunPod. A gateway machine without a GPU runs the router (marginal-cost
 routing), the RAG step and Open WebUI; three GPU nodes run Qwen3-14B (Q4_K_M, llama.cpp, 3 slots):

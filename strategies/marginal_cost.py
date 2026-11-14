@@ -38,7 +38,7 @@ from strategies.length_predictor import LengthPredictor
 
 ROOT = Path(__file__).resolve().parents[1]
 UNREACHABLE = 10**6
-SLOTS = 4
+SLOTS = int(os.environ.get("LB_SLOTS", "4"))   # slots per server; 3 in the case study (Qwen3-14B)
 PREDICTOR = LengthPredictor.load(os.environ.get("LB_LENGTH_TABLE", ROOT / "strategies" / "length_table.json"))
 LAMBDA = float(os.environ.get("LB_MC_LAMBDA", "0.002") or 0)   # fixed on the simulator (largest value within 10% of the fastest p95 at every load)
 

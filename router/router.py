@@ -172,7 +172,11 @@ async def chat(req: Request):
         finally:
             INFLIGHT[gpu] -= 1
         end = time.time()
-        data = r.json()
+        try:
+            data = r.json()
+        except Exception:                                  # e.g. an error page from a proxy
+            print(f"BADRESP gpu={gpu} status={r.status_code} after={end - arrival:.1f}s body={r.text[:160]!r}", file=sys.stderr, flush=True)
+            raise
         n_out = data.get("usage", {}).get("completion_tokens", 0)
         log_row(row((end - arrival) * 1000, n_out, end))   # without streaming, TTFT = full time
         return JSONResponse(data, status_code=r.status_code)
