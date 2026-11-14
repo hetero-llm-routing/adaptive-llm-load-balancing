@@ -1,7 +1,23 @@
 # Adaptive Load Balancing for LLM Inference on Heterogeneous GPU Clusters
 
 Course project, ECOM 6339, Islamic University of Gaza.
-Team: Eyad Salama, Osama Jneineh, Mohammed-Jamal Al-Khatib. Supervisor: Dr. Khalil Abuzanouneh.
+Team: Eyad Kamal Salama, Osama Raed Jenana, Mohammedjamal Mohammedjawad Elkhatib.
+Supervisor: Dr. Khalil Ibrahim Abu Zanouna.
+
+**Paper:** [`paper/Adaptive_Load_Balancing_LLM_Heterogeneous_GPUs_AbuZanouna_Salama_Jenana_Elkhatib.pdf`](paper/Adaptive_Load_Balancing_LLM_Heterogeneous_GPUs_AbuZanouna_Salama_Jenana_Elkhatib.pdf)
+
+## Main results
+
+- 195 runs on a real cluster (RTX 4090, RTX A6000, RTX 2000 Ada; Qwen3-8B on llama.cpp):
+  predictive, RL and marginal-cost routing cut the 95th-percentile end-to-end latency by 60–64%
+  against round robin at medium load (`results/phase5/`).
+- Marginal-cost routing (ours) needs 13% less energy per token than RL at medium load, at a 6%
+  higher tail latency; against least work its gain is energy, not latency.
+- Calibrated simulator up to 16 GPUs (`results/scaling/`); decision time below 0.25 ms (p99)
+  (`results/overhead/`).
+- Case study: a private RAG assistant on Qwen3-14B finished bursts of questions 35% sooner with
+  marginal-cost routing than with round robin (`results/case_study_en/`).
+
 
 A router sits in front of several inference servers and decides, for every request,
 which server (GPU) handles it. We compare four strategy families: static, dynamic,

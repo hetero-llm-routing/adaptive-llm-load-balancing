@@ -1,0 +1,11 @@
+strategy,rep,burst_s,mean_s,p95_s,max_s
+marginal_cost,1,20.5,13.2,19.0,19.9
+round_robin,1,32.0,14.4,24.8,31.4
+marginal_cost,2,27.4,14.0,21.0,26.9
+round_robin,2,31.9,11.8,20.0,31.2
+marginal_cost,3,21.9,12.0,17.7,21.4
+round_robin,3,35.9,15.3,31.4,35.4
+marginal_cost,4,20.0,12.1,18.5,19.4
+round_robin,4,36.9,12.4,21.1,36.4
+marginal_cost,5,23.0,12.7,20.5,22.5
+round_robin,5,37.3,14.8,28.0,37.3
