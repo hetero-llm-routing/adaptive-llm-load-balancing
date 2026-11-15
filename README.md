@@ -1,10 +1,10 @@
 # Adaptive Load Balancing for LLM Inference on Heterogeneous GPU Clusters
 
 Course project, ECOM 6339, Islamic University of Gaza.
-Team: Eyad Kamal Salama, Osama Raed Jenana, Mohammedjamal Mohammedjawad Elkhatib.
+Team: Eyad Kamal Salama, Osama Raed Juneina, Mohammedjamal Mohammedjawad Elkhatib.
 Supervisor: Dr. Khalil Ibrahim Abu Zanouna.
 
-**Paper:** [`paper/Adaptive_Load_Balancing_LLM_Heterogeneous_GPUs_AbuZanouna_Salama_Jenana_Elkhatib.pdf`](paper/Adaptive_Load_Balancing_LLM_Heterogeneous_GPUs_AbuZanouna_Salama_Jenana_Elkhatib.pdf)
+**Paper:** [`paper/Adaptive_Load_Balancing_LLM_Heterogeneous_GPUs_AbuZanouna_Salama_Juneina_Elkhatib.pdf`](paper/Adaptive_Load_Balancing_LLM_Heterogeneous_GPUs_AbuZanouna_Salama_Juneina_Elkhatib.pdf)
 
 ## Main results
 
